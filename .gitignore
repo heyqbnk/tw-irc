@@ -1,0 +1,6 @@
+node_modules
+.vcs
+.idea
+coverage
+dist
+example

@@ -1,0 +1,47 @@
+{
+  "name": "tw-irc",
+  "version": "1.0.1",
+  "description": "Library for working with Twitch IRC",
+  "main": "index.js",
+  "repository": "https://github.com/wolframdeus/twitch.irc.git",
+  "author": "Wolfram Deus <wolfram.deus@gmail.com>",
+  "license": "MIT",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "prepublishOnly": "yarn test && yarn lint && yarn build",
+    "build": "tsc",
+    "format": "prettier --write \"lib/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json",
+    "dev": "webpack-dev-server",
+    "test": "jest --config jest.config.js"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint && yarn format",
+      "pre-push": "yarn test"
+    }
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@types/jest": "^24.0.15",
+    "@types/jest-each": "^0.3.4",
+    "babel-loader": "^8.0.6",
+    "husky": "^3.0.1",
+    "jest": "^24.8.0",
+    "jest-each": "^24.8.0",
+    "prettier": "^1.18.2",
+    "ts-jest": "^24.0.2",
+    "ts-loader": "^6.0.4",
+    "tslint": "^5.18.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.5.3",
+    "webpack": "^4.36.1",
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.7.2"
+  },
+  "dependencies": {}
+}

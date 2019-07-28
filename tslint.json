@@ -1,0 +1,99 @@
+{
+  "extends": ["tslint:recommended", "tslint-config-prettier"],
+  "rules": {
+    "no-any": false,
+    "no-empty-interface": false,
+    "no-inferrable-types": true,
+    "no-parameter-reassignment": true,
+    "prefer-for-of": true,
+    "promise-function-async": true,
+    "typedef": true,
+    "unified-signatures": true,
+    "await-promise": true,
+    "curly": true,
+    "no-console": [
+      true,
+      "log"
+    ],
+    "no-duplicate-super": true,
+    "no-duplicate-switch-case": true,
+    "no-duplicate-variable": true,
+    "no-duplicate-imports": true,
+    "no-dynamic-delete": true,
+    "no-eval": true,
+    "no-empty": false,
+    "no-implicit-dependencies": true,
+    "no-invalid-this": true,
+    "no-misused-new": true,
+    "no-shadowed-variable": true,
+    "no-string-literal": true,
+    "no-this-assignment": true,
+    "no-unnecessary-class": true,
+    "no-unused-expression": true,
+    "no-var-keyword": true,
+    "prefer-object-spread": true,
+    "radix": true,
+    "triple-equals": true,
+    "use-isnan": true,
+    "no-default-export": false,
+    "no-require-imports": true,
+    "array-type": [
+      true,
+      "array-simple"
+    ],
+    "member-ordering": false,
+    "arrow-parens": false,
+    "arrow-return-shorthand": true,
+    "class-name": true,
+    "interface-name": true,
+    "no-angle-bracket-type-assertion": true,
+    "no-boolean-literal-compare": true,
+    "no-unnecessary-callback-wrapper": true,
+    "no-unnecessary-initializer": true,
+    "one-variable-per-declaration": true,
+    "ordered-imports": false,
+    "prefer-function-over-method": false,
+    "prefer-method-signature": true,
+    "space-before-function-paren": false,
+    "space-within-parens": false,
+    "variable-name": [
+      true,
+      "ban-keywords"
+    ],
+    "no-redundant-jsdoc": false,
+    "align": false,
+    "eofline": true,
+    "import-spacing": false,
+    "indent": [
+      true,
+      "spaces"
+    ],
+    "max-line-length": [
+      true,
+      {
+        "limit": 80,
+        "ignore-pattern": "^import |^export {(.*?)}"
+      }
+    ],
+    "newline-before-return": true,
+    "no-trailing-whitespace": true,
+    "quotemark": [
+      true,
+      "single",
+      "jsx-single"
+    ],
+    "semicolon": [
+      true,
+      "always",
+      "ignore-bound-class-methods"
+    ],
+    "object-literal-sort-keys": false,
+    "object-literal-key-quotes": false
+  },
+  "linterOptions": {
+    "exclude": [
+      "*.d.ts",
+      "**/*.test.tsx"
+    ]
+  }
+}
