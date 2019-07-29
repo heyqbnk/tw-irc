@@ -12,7 +12,14 @@ enum EIRCCommand {
   Pong = 'PONG',
 }
 
+enum ESocketReadyState {
+  Connecting = 0,
+  Open = 1,
+  Closing = 2,
+  Closed = 3,
+}
+
 type TMetaValue = null | string | number | Array<string | number>;
 type TMeta = Record<string, TMetaValue | TMetaValue[] | null>;
 
-export { EIRCCommand, TMeta, TMetaValue };
+export { EIRCCommand, ESocketReadyState, TMeta, TMetaValue };

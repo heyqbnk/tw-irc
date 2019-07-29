@@ -4,21 +4,40 @@ import {
   TChannelCommand,
   TUserCommand,
 } from './types';
-import { EIRCCommand } from '../types/irc';
+import { EIRCCommand, ESocketReadyState } from '../types/irc';
+import { TObservableEvents } from '../types/event-params';
 import { UtilsRepository } from '../repositories/utils';
 import { EventsRepository, TCallbacksMap } from '../repositories/events';
-import { TObservableEvents } from '../types/event-params';
 import { ChannelsRepository } from '../repositories/channels';
 import { parseIRCMessage, prepareIRCMessage } from '../utils';
 import { generateRandomLogin } from './utils';
 
 class Client {
+  /**
+   * Authentication data.
+   */
   private readonly auth: IAuthInfo;
+  /**
+   * Path for websocket connection.
+   */
   private readonly webSocketPath: string;
+  /**
+   * Websocket instance.
+   */
   private webSocket: WebSocket;
 
+  /**
+   * Repository to work with channels.
+   * @type {ChannelsRepository}
+   */
   public channels = new ChannelsRepository(this);
+  /**
+   * Repository containing some useful methods.
+   */
   public utils: UtilsRepository;
+  /**
+   * Repository responsible for events binding.
+   */
   public events: EventsRepository;
 
   public constructor(props: IClientConstructorProps = {}) {
@@ -39,57 +58,7 @@ class Client {
   }
 
   /**
-   * Initializes client. The main method's purpose is to disconnect previous
-   * WebSocket, create new one, bind life-required listeners (ping-response)
-   * and reinitialize repositories.
-   *
-   * Remember, that while using this method, all bound WebSocket events will
-   * disappear and you have to bind them again.
-   */
-  private connect = () => {
-    // Disconnect previous WebSocket.
-    if (this.webSocket) {
-      this.disconnect();
-    }
-    const webSocket = new WebSocket(this.webSocketPath);
-
-    // Initialize repositories.
-    this.utils = new UtilsRepository(webSocket);
-    this.events = new EventsRepository(webSocket);
-
-    webSocket.addEventListener('open', this.onWebSocketOpen);
-
-    this.webSocket = webSocket;
-  };
-
-  /**
-   * Disconnects web socket.
-   */
-  public disconnect = () => this.webSocket.close();
-
-  /**
-   * Shortcut to commands listening.
-   * @param command
-   * @param {TCallbacksMap[Command]} listener
-   * @returns {number}
-   */
-  public on = <Command extends TObservableEvents>(
-    command: Command,
-    listener: TCallbacksMap[Command],
-  ) => this.events.on(command, listener);
-
-  /**
-   * Shortcut to socket events listening.
-   * @param {K} eventName
-   * @param {(ev: WebSocketEventMap[K]) => any} listener
-   */
-  public onWebSocket = <K extends keyof WebSocketEventMap>(
-    eventName: K,
-    listener: (ev: WebSocketEventMap[K]) => any,
-  ) => this.webSocket.addEventListener(eventName, listener);
-
-  /**
-   * Listener which request required capabilities, authenticates user
+   * Listener which requests required capabilities, authenticates user
    * and add listener to PING command to respond with PONG.
    */
   private onWebSocketOpen = () => {
@@ -130,27 +99,93 @@ class Client {
     });
   };
 
+  /**
+   * User-oriented commands generator.
+   * @param {string} command
+   * @returns {TUserCommand}
+   */
   private userCommand = (command: string): TUserCommand => {
     return (channel, user) => this.say(channel, `${command} ${user}`);
   };
 
+  /**
+   * Channel-oriented commands generator.
+   * @param {string} command
+   * @returns {TChannelCommand}
+   */
   private channelCommand = (command: string): TChannelCommand => {
     return channel => this.say(channel, command);
   };
 
-  // Ban / unban user
+  /**
+   * Initializes client. The main method's purpose is to disconnect previous
+   * WebSocket, create new one, bind life-required listeners (ping-response)
+   * and reinitialize repositories.
+   *
+   * Remember, that while using this method, all bound WebSocket events will
+   * disappear and you have to bind them again.
+   */
+  public connect = () => {
+    // Disconnect previous WebSocket.
+    if (this.webSocket) {
+      this.disconnect();
+    }
+    const webSocket = new WebSocket(this.webSocketPath);
+
+    // Initialize repositories.
+    this.utils = new UtilsRepository(webSocket);
+    this.events = new EventsRepository(webSocket);
+
+    // Watch for PING message. In case it is, respond with PONG to
+    // keep connection opened.
+    webSocket.addEventListener('open', this.onWebSocketOpen);
+
+    this.webSocket = webSocket;
+  };
+
+  /**
+   * Disconnects web socket.
+   */
+  public disconnect = () => this.webSocket.close();
+
+  /**
+   * Shortcut to commands listening.
+   * @param command
+   * @param {TCallbacksMap[Command]} listener
+   * @returns {number}
+   */
+  public on = <Command extends TObservableEvents>(
+    command: Command,
+    listener: TCallbacksMap[Command],
+  ) => this.events.on(command, listener);
+
+  /**
+   * Shortcut to socket events listening.
+   * @param {K} eventName
+   * @param {(ev: WebSocketEventMap[K]) => any} listener
+   */
+  public onWebSocket = <K extends keyof WebSocketEventMap>(
+    eventName: K,
+    listener: (ev: WebSocketEventMap[K]) => any,
+  ) => this.webSocket.addEventListener(eventName, listener);
+
+  /**
+   * Gets current connection ready state.
+   * @returns {ESocketReadyState}
+   */
+  public getReadyState = (): ESocketReadyState => {
+    return this.webSocket.readyState as ESocketReadyState;
+  };
+
   public ban = this.userCommand('/ban');
   public unban = this.userCommand('/unban');
 
-  // Enable emote only mode
   public emoteOnlyOn = this.channelCommand('/emoteonly');
   public emoteOnlyOff = this.channelCommand('/emoteonlyoff');
 
-  // Followers mode
   public followersOnlyOn = this.channelCommand('/followers');
   public followersOnlyOff = this.channelCommand('/followersoff');
 
-  // Hosting
   public host = this.channelCommand('/host');
   public unhost = () => this.channelCommand('/unhost');
 
@@ -159,24 +194,19 @@ class Client {
   public me = (channel: string, action: string) =>
     this.say(channel, `/me ${action}`);
 
-  // Moderators
   public mod = this.userCommand('/mod');
   public unmod = this.userCommand('/unmod');
 
-  // R9K
   public r9kOn = this.channelCommand('/r9kbeta');
   public r9kOff = this.channelCommand('/r9kbetaoff');
 
-  // Raid
   public raid = this.userCommand('/raid');
   public unraid = this.channelCommand('/unraid');
 
-  // Slowmode
   public slowmodeOn = (channel: string, secs = 30) =>
     this.say(channel, `/slow ${secs}`);
   public slowmodeOff = this.channelCommand('/slowoff');
 
-  // Timeouts
   public timeout = (
     channel: string,
     user: string,
@@ -189,7 +219,6 @@ class Client {
     );
   public untimeout = this.userCommand('/untimeout');
 
-  // VIP
   public vip = this.userCommand('/vip');
   public unvip = this.userCommand('/unvip');
 

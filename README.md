@@ -11,7 +11,7 @@ inside this library are based on TypeScript typings restrictions.
 Library contains a client, that connects to Twitch IRC. Here is an example
 to create an instance of this client:
 ```javascript
-import { Client } from 'twitch-irc';
+import { Client } from 'tw-irc';
 
 // Create anonymous client
 const client = new Client();
@@ -54,15 +54,31 @@ Otherwise, an error will occur.
 
 The second thing you have to know is you should not use client commands like
 `ban`, `say` and other before the connection was successfully established. You
-can detect its existence adding event `open` to socket connection (to be fixed
-as soon as possible).
+can detect its existence by calling `getReadyState()` method which returns 
+`ESocketReadyState`.
+
+```javascript
+import { ESocketReadyState } from 'tw-irc'
+
+const readyState = client.getReadyState();
+
+if (readyState === ESocketReadyState.Open) {
+  console.log('Socket connection is established');
+} else if (readyState === ESocketReadyState.Closed) {
+  console.log('Socket connection is closed');
+} else if (readyState === ESocketReadyState.Closing) {
+  console.log('Socket connection is closing');
+} else {
+  console.log('Socket connection is being established..');
+}
+```
 
 ### IRC events
 Library contains special enum `EIRCCommand` which allows you to use
 dictionary instead of raw texts. Here is an example of binding listener
 to IRC command.
 ```javascript
-import { EIRCCommand } from 'twitch-irc';
+import { EIRCCommand } from 'tw-irc';
 
 // Firstly, we have to join some channel
 client.channels.join('dreadztv');
@@ -80,7 +96,7 @@ client.on(EIRCCommand.Message, data => {
 If you want full control over the messages coming from IRC, you can use
 this trick:
 ```javascript
-import { parseIRCMessage, prepareIRCMessage } from 'twitch-irc/utils';
+import { parseIRCMessage, prepareIRCMessage } from 'tw-irc/utils';
 
 client.onWebSocket('message', event => {
   // Convert raw socket message to array of messages. We need this action
@@ -105,10 +121,6 @@ client.onWebSocket('message', event => {
 });
 ```
 
-### TODO
-- Automatically rebind events on `disconnect` and `connect`. Developer must not
-care about internal library processes and want to work with the single-like
-socket connection.
-- Add `getReadyState` method for client to give a possibility to get current
-socket connection state. It is unreal now to get its state because of
-`webSocket`'s security level.
+## TODO
+- Automatically rebind events on `disconnect` and `connect`.
+- Full tests coverage.
