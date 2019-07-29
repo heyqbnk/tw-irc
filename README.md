@@ -1,8 +1,9 @@
 # tw-irc
+## About
 Here is a library that handles connection to Twitch IRC. It allows you to join
 or leave channels, detect and send new messages and other.
 
-We expect, you are using TypeScript, because some error protection mechanism
+We expect, you are using TypeScript, because some error protection mechanisms
 inside this library are based on TypeScript typings restrictions.
 
 ## Documentation
@@ -26,7 +27,7 @@ const authenticatedClient = new Client({
 
 ### Connect client to IRC
 After client is created, we have to initialize socket connection to Twitch
-IRC. It will create an instance of WebSocket which will try to reconnect to
+IRC. It will create an instance of WebSocket which will try to connect to
 IRC. After `connect()` is called, previous WebSocket is being disconnected
 and other instance of WebSocket will be created. Remember, that all previously
 bound events to old socket will disappear, so, you will have to rebind them.
@@ -37,13 +38,15 @@ client.connect();
 
 ## Events
 Client supports 2 types of events - WebSocket events 
-("message", "open", "close", "error") and IRC events.
+(`message`, `open`, `close`, `error`) and IRC events.
 
 ### WebSocket events
-These events are directly bound to created WebSocket after `connect()`:
+These events are directly bound to created WebSocket 
+(watch [WebSocket specs](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket).
+for more info) after `connect()`:
 ```javascript
 client.onWebSocket('message', event => {
-  console.log('Some message event ocurred', event);
+  console.log('Some message event occurred', event);
 });
 ```
 Make sure, you are binding events only after `connect()` was firstly called.
@@ -51,7 +54,8 @@ Otherwise, an error will occur.
 
 The second thing you have to know is you should not use client commands like
 `ban`, `say` and other before the connection was successfully established. You
-can detect its existence adding event `open` to socket connection.
+can detect its existence adding event `open` to socket connection (to be fixed
+as soon as possible).
 
 ### IRC events
 Library contains special enum `EIRCCommand` which allows you to use
@@ -63,7 +67,7 @@ import { EIRCCommand } from 'twitch-irc';
 // Firstly, we have to join some channel
 client.channels.join('dreadztv');
 
-// Bind event to listen to PRIVMSG event
+// Bind event to listen to EIRCCommand.Message = "PRIVMSG" event
 client.on(EIRCCommand.Message, data => {
   const { channel, message, user, userInfo } = data;
   
@@ -100,3 +104,11 @@ client.onWebSocket('message', event => {
   // You can react however you want after all of messages are parsed.
 });
 ```
+
+### TODO
+- Automatically rebind events on `disconnect` and `connect`. Developer must not
+care about internal library processes and want to work with the single-like
+socket connection.
+- Add `getReadyState` method for client to give a possibility to get current
+socket connection state. It is unreal now to get its state because of
+`webSocket`'s security level.
