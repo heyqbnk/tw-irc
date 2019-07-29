@@ -1,12 +1,11 @@
-import { EIRCCommand } from '../../types/irc';
 import { IParsedIRCMessage } from '../../utils';
 import { IEventParams, TObservableEvents } from '../../types/event-params';
 
 /**
- * Events listener
+ * Command listener
  */
-interface IListener {
-  command: EIRCCommand;
+interface ICommandListener {
+  command: TObservableEvents;
   listener: TCallback<any>;
 }
 
@@ -38,4 +37,10 @@ type TCallbacksMap = {
   [Command in TObservableEvents]: TCallback<IEventParams[Command]>;
 };
 
-export { TCallbacksMap, TTransformersMap, TTransformer, TCallback, IListener };
+export {
+  TCallbacksMap,
+  TTransformersMap,
+  TTransformer,
+  TCallback,
+  ICommandListener,
+};

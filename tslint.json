@@ -1,5 +1,5 @@
 {
-  "extends": ["tslint:recommended", "tslint-config-prettier"],
+  "extends": "tslint:recommended",
   "rules": {
     "no-any": false,
     "no-empty-interface": false,
@@ -93,7 +93,7 @@
   "linterOptions": {
     "exclude": [
       "*.d.ts",
-      "**/*.test.tsx"
+      "**/*.test.ts"
     ]
   }
 }

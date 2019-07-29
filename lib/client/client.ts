@@ -1,14 +1,15 @@
-import {
-  IAuthInfo,
-  IClientConstructorProps,
-  TChannelCommand,
-  TUserCommand,
-} from './types';
-import { EIRCCommand, ESocketReadyState } from '../types/irc';
-import { TObservableEvents } from '../types/event-params';
+import { IAuthInfo, IClientConstructorProps } from './types';
+import { Socket } from '../socket';
+import { EIRCCommand, TObservableEvents } from '../types';
+
 import { UtilsRepository } from '../repositories/utils';
-import { EventsRepository, TCallbacksMap } from '../repositories/events';
 import { ChannelsRepository } from '../repositories/channels';
+import { UsersRepository } from '../repositories/users';
+import {
+  EventsRepository,
+  TCallback,
+  TCallbacksMap,
+} from '../repositories/events';
 import { parseIRCMessage, prepareIRCMessage } from '../utils';
 import { generateRandomLogin } from './utils';
 
@@ -17,28 +18,38 @@ class Client {
    * Authentication data.
    */
   private readonly auth: IAuthInfo;
+
   /**
-   * Path for websocket connection.
+   * Bound channel for client.
    */
-  private readonly webSocketPath: string;
+  private boundChannel: string | undefined;
+
   /**
-   * Websocket instance.
+   * Repository responsible for events binding.
    */
-  private webSocket: WebSocket;
+  private events: EventsRepository;
+
+  /**
+   * Custom Socket instance.
+   */
+  public readonly socket: Socket;
 
   /**
    * Repository to work with channels.
    * @type {ChannelsRepository}
    */
   public channels = new ChannelsRepository(this);
+
+  /**
+   * Repository to communicate with users.
+   * @type {UsersRepository}
+   */
+  public users = new UsersRepository(this);
+
   /**
    * Repository containing some useful methods.
    */
   public utils: UtilsRepository;
-  /**
-   * Repository responsible for events binding.
-   */
-  public events: EventsRepository;
 
   public constructor(props: IClientConstructorProps = {}) {
     const { secure, auth } = props;
@@ -47,19 +58,21 @@ class Client {
     // from websocket frames on somebody's channel.
     this.auth = auth || {
       login: generateRandomLogin(),
-      password: 'SCHMOOPIIE',
+      password: generateRandomLogin(),
     };
-    this.webSocketPath = secure
-      ? 'wss://irc-ws.chat.twitch.tv:443'
-      : 'ws://irc-ws.chat.twitch.tv:80';
+    const socket = new Socket({ secure });
+    socket.on('open', this.onWebSocketOpen);
+    socket.on('message', this.onWebSocketMessage);
 
-    // Create WebSocket connection and initialize repos.
-    this.connect();
+    // Initialize repositories.
+    this.utils = new UtilsRepository(socket);
+    this.events = new EventsRepository(socket);
+
+    this.socket = socket;
   }
 
   /**
-   * Listener which requests required capabilities, authenticates user
-   * and add listener to PING command to respond with PONG.
+   * Listener which requests required capabilities and authenticates user.
    */
   private onWebSocketOpen = () => {
     // tslint:disable-next-line:no-this-assignment
@@ -77,8 +90,6 @@ class Client {
     // https://dev.twitch.tv/docs/irc/guide/
     sendRawMessage(`${EIRCCommand.Password} ${password}`);
     sendRawMessage(`${EIRCCommand.Nickname} ${login}`);
-
-    this.onWebSocket('message', this.onWebSocketMessage);
   };
 
   /**
@@ -100,56 +111,17 @@ class Client {
   };
 
   /**
-   * User-oriented commands generator.
-   * @param {string} command
-   * @returns {TUserCommand}
+   * Create a client connection to IRC.
    */
-  private userCommand = (command: string): TUserCommand => {
-    return (channel, user) => this.say(channel, `${command} ${user}`);
-  };
-
-  /**
-   * Channel-oriented commands generator.
-   * @param {string} command
-   * @returns {TChannelCommand}
-   */
-  private channelCommand = (command: string): TChannelCommand => {
-    return channel => this.say(channel, command);
-  };
-
-  /**
-   * Initializes client. The main method's purpose is to disconnect previous
-   * WebSocket, create new one, bind life-required listeners (ping-response)
-   * and reinitialize repositories.
-   *
-   * Remember, that while using this method, all bound WebSocket events will
-   * disappear and you have to bind them again.
-   */
-  public connect = () => {
-    // Disconnect previous WebSocket.
-    if (this.webSocket) {
-      this.disconnect();
-    }
-    const webSocket = new WebSocket(this.webSocketPath);
-
-    // Initialize repositories.
-    this.utils = new UtilsRepository(webSocket);
-    this.events = new EventsRepository(webSocket);
-
-    // Watch for PING message. In case it is, respond with PONG to
-    // keep connection opened.
-    webSocket.addEventListener('open', this.onWebSocketOpen);
-
-    this.webSocket = webSocket;
-  };
+  public connect = () => this.socket.connect();
 
   /**
    * Disconnects web socket.
    */
-  public disconnect = () => this.webSocket.close();
+  public disconnect = () => this.socket.disconnect();
 
   /**
-   * Shortcut to commands listening.
+   * Shortcut to commands events binding.
    * @param command
    * @param {TCallbacksMap[Command]} listener
    * @returns {number}
@@ -160,81 +132,33 @@ class Client {
   ) => this.events.on(command, listener);
 
   /**
-   * Shortcut to socket events listening.
-   * @param {K} eventName
-   * @param {(ev: WebSocketEventMap[K]) => any} listener
+   * Shortcut to commands events unbinding.
+   * @param {TCallbacksMap[Command]} listener
+   * @returns {number}
    */
-  public onWebSocket = <K extends keyof WebSocketEventMap>(
-    eventName: K,
-    listener: (ev: WebSocketEventMap[K]) => any,
-  ) => this.webSocket.addEventListener(eventName, listener);
+  public off = <Listener extends TCallback<any>>(listener: Listener) =>
+    this.events.off(listener);
 
   /**
-   * Gets current connection ready state.
-   * @returns {ESocketReadyState}
+   * Binds this client to stated channel.
+   * @param {string} channel
    */
-  public getReadyState = (): ESocketReadyState => {
-    return this.webSocket.readyState as ESocketReadyState;
+  public bindChannel = (channel: string) => (this.boundChannel = channel);
+
+  /**
+   * Say a message to channel.
+   * @param {string} message
+   * @param {string} channel
+   */
+  public say = (message: string, channel?: string) => {
+    if (!channel && !this.boundChannel) {
+      throw new Error('Cannot send message due to channel is not stated');
+    }
+    this.utils.sendCommand(EIRCCommand.Message, {
+      channel: channel || this.boundChannel,
+      message,
+    });
   };
-
-  public ban = this.userCommand('/ban');
-  public unban = this.userCommand('/unban');
-
-  public emoteOnlyOn = this.channelCommand('/emoteonly');
-  public emoteOnlyOff = this.channelCommand('/emoteonlyoff');
-
-  public followersOnlyOn = this.channelCommand('/followers');
-  public followersOnlyOff = this.channelCommand('/followersoff');
-
-  public host = this.channelCommand('/host');
-  public unhost = () => this.channelCommand('/unhost');
-
-  public marker = (channel: string, comment: string) =>
-    this.say(channel, `/marker ${comment}`);
-  public me = (channel: string, action: string) =>
-    this.say(channel, `/me ${action}`);
-
-  public mod = this.userCommand('/mod');
-  public unmod = this.userCommand('/unmod');
-
-  public r9kOn = this.channelCommand('/r9kbeta');
-  public r9kOff = this.channelCommand('/r9kbetaoff');
-
-  public raid = this.userCommand('/raid');
-  public unraid = this.channelCommand('/unraid');
-
-  public slowmodeOn = (channel: string, secs = 30) =>
-    this.say(channel, `/slow ${secs}`);
-  public slowmodeOff = this.channelCommand('/slowoff');
-
-  public timeout = (
-    channel: string,
-    user: string,
-    duration = '10m',
-    reason?: string,
-  ) =>
-    this.say(
-      channel,
-      `/timeout ${user} ${duration}${reason ? ` ${reason}` : ''}`,
-    );
-  public untimeout = this.userCommand('/untimeout');
-
-  public vip = this.userCommand('/vip');
-  public unvip = this.userCommand('/unvip');
-
-  public clearChat = this.channelCommand('/clear');
-  public changeColor = (channel: string, color: string) =>
-    this.say(channel, `/color ${color}`);
-  public runCommercial = (channel: string, secs: number) =>
-    this.say(channel, `/commercial ${secs}`);
-  public deleteMessage = (channel: string, msgId: string) =>
-    this.say(channel, `/delete ${msgId}`);
-
-  public whisper = (channel: string, user: string, message: string) =>
-    this.say(channel, `/w ${user} ${message}`);
-
-  public say = (channel: string, message: string) =>
-    this.utils.sendCommand(EIRCCommand.Message, { channel, message });
 }
 
 export { Client };

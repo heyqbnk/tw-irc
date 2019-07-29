@@ -1,23 +1,36 @@
-import { IListener, TCallbacksMap } from './types';
-import { EIRCCommand } from '../../types/irc';
+import { ICommandListener, TCallback, TCallbacksMap } from './types';
 import { parseIRCMessage } from '../../utils';
 import { transformers } from './transformers';
-import { TObservableEvents } from '../../types/event-params';
-
-const ircCommandsValues = Object.values(EIRCCommand);
+import { TObservableEvents } from '../../types';
+import { Socket } from '../../socket';
 
 export class EventsRepository {
-  private readonly listeners: IListener[] = [];
+  private readonly commandListeners: ICommandListener[] = [];
+  private readonly socket: Socket;
 
-  public constructor(socket: WebSocket) {
+  public constructor(socket: Socket) {
     this.socket = socket;
-    this.socket.addEventListener('message', this.onMessage);
+    this.socket.on('message', this.onMessage);
   }
 
   /**
-   * Give access to socket events only in this repo.
+   * Parses incoming message and triggers event listeners.
+   * @param {MessageEvent} event
    */
-  public socket: WebSocket;
+  private onMessage = (event: MessageEvent) => {
+    const parsedMessage = parseIRCMessage(event.data as string);
+
+    // Check if there are bound listeners to this command.
+    this.commandListeners.forEach(item => {
+      if (item.command === parsedMessage.command) {
+        // We have to pre-transform parameters to format, applicable
+        // by specific listener.
+        const transform = transformers[parsedMessage.command];
+
+        item.listener(transform(parsedMessage));
+      }
+    });
+  };
 
   /**
    * Binds event listener for command.
@@ -27,27 +40,19 @@ export class EventsRepository {
   public on = <Command extends TObservableEvents>(
     command: Command,
     listener: TCallbacksMap[Command],
-  ) => this.listeners.push({ command, listener });
+  ) => this.commandListeners.push({ command, listener });
 
   /**
-   * Parses incoming message and triggers event listeners.
-   * @param {MessageEvent} event
+   * Removes command listener.
+   * @param {Listener} listener
    */
-  private onMessage = (event: MessageEvent) => {
-    const parsedMessage = parseIRCMessage(event.data as string);
+  public off = <Listener extends TCallback<any>>(listener: Listener) => {
+    const foundIndex = this.commandListeners.findIndex(
+      item => item.listener === listener,
+    );
 
-    if (!ircCommandsValues.includes(parsedMessage.command)) {
-      return;
+    if (foundIndex > -1) {
+      this.commandListeners.splice(foundIndex, 1);
     }
-    // Check if there are bound listeners to this command.
-    this.listeners.forEach(item => {
-      if (item.command === parsedMessage.command) {
-        // We have to pre-transform parameters to format, applicable
-        // by specific listener.
-        const transform = transformers[parsedMessage.command];
-
-        item.listener(transform(parsedMessage));
-      }
-    });
   };
 }

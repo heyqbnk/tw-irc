@@ -8,7 +8,4 @@ interface IClientConstructorProps {
   secure?: boolean;
 }
 
-type TUserCommand = (channel: string, user: string) => void;
-type TChannelCommand = (channel: string) => void;
-
-export { IAuthInfo, IClientConstructorProps, TUserCommand, TChannelCommand };
+export { IAuthInfo, IClientConstructorProps };

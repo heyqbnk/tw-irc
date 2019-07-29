@@ -4,16 +4,19 @@ import {
 } from '../../types/command-params';
 
 import { commandHandlersMap } from './handlers';
+import { Socket } from '../../socket';
 
 export class UtilsRepository {
-  public constructor(socket: WebSocket) {
-    this.sendRawMessage = socket.send.bind(socket);
+  private readonly socket: Socket;
+
+  public constructor(socket: Socket) {
+    this.socket = socket;
   }
 
   /**
    * Sends raw message.
    */
-  public sendRawMessage: (message: string) => void;
+  public sendRawMessage = (message: string) => this.socket.send(message);
 
   /**
    * Sends IRC command.
