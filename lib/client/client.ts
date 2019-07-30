@@ -5,11 +5,7 @@ import { EIRCCommand, TObservableEvents } from '../types';
 import { UtilsRepository } from '../repositories/utils';
 import { ChannelsRepository } from '../repositories/channels';
 import { UsersRepository } from '../repositories/users';
-import {
-  EventsRepository,
-  TCallback,
-  TCallbacksMap,
-} from '../repositories/events';
+import { EventsRepository, TCallbacksMap } from '../repositories/events';
 import { parseIRCMessage, prepareIRCMessage } from '../utils';
 import { generateRandomLogin } from './utils';
 
@@ -133,11 +129,14 @@ class Client {
 
   /**
    * Shortcut to commands events unbinding.
+   * @param command
    * @param {TCallbacksMap[Command]} listener
    * @returns {number}
    */
-  public off = <Listener extends TCallback<any>>(listener: Listener) =>
-    this.events.off(listener);
+  public off = <Command extends TObservableEvents>(
+    command: Command,
+    listener: TCallbacksMap[Command],
+  ) => this.events.off(command, listener);
 
   /**
    * Binds this client to stated channel.

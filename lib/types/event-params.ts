@@ -14,8 +14,7 @@ interface IMessageEventParams extends IDefaultEventParams {
   userInfo: TMeta;
 }
 
-type TObservableEvents =
-  | EIRCCommand.Message
+type TObservableEvents = EIRCCommand.Message
   | EIRCCommand.JoinChannel
   | EIRCCommand.LeaveChannel;
 

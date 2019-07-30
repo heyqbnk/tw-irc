@@ -1,4 +1,4 @@
-import { ICommandListener, TCallback, TCallbacksMap } from './types';
+import { ICommandListener, TCallbacksMap } from './types';
 import { parseIRCMessage } from '../../utils';
 import { transformers } from './transformers';
 import { TObservableEvents } from '../../types';
@@ -44,11 +44,15 @@ export class EventsRepository {
 
   /**
    * Removes command listener.
+   * @param command
    * @param {Listener} listener
    */
-  public off = <Listener extends TCallback<any>>(listener: Listener) => {
+  public off = <Command extends TObservableEvents>(
+    command: Command,
+    listener: TCallbacksMap[Command],
+  ) => {
     const foundIndex = this.commandListeners.findIndex(
-      item => item.listener === listener,
+      item => item.listener === listener && item.command === command,
     );
 
     if (foundIndex > -1) {

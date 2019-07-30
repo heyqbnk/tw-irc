@@ -46,12 +46,6 @@ class ChannelsRepository {
   };
 
   /**
-   * Enable Emote only mode.
-   * @type {TChannelCommand}
-   */
-  public emoteOnlyOn = this.channelCommand('/emoteonly');
-
-  /**
    * Emote only mode.
    * @type {TChannelCommand}
    */
@@ -91,11 +85,11 @@ class ChannelsRepository {
 
   /**
    * Plays commercial ads.
-   * @param {number} secs
+   * @param durationInSeconds
    * @param {string} channel
    */
-  public playCommercial = (secs: number, channel?: string) => {
-    this.client.say(`/commercial ${secs}`, channel);
+  public playCommercial = (durationInSeconds: number, channel?: string) => {
+    this.client.say(`/commercial ${durationInSeconds}`, channel);
   };
 
   /**
@@ -108,7 +102,9 @@ class ChannelsRepository {
    * Hosts channel.
    * @type {TChannelCommand}
    */
-  public host = this.channelCommand('/host');
+  public host = (targetChannel: string, channel?: string) => {
+    this.client.say(`/host ${targetChannel}`, channel);
+  }
 
   /**
    * Unhosts channel.
@@ -120,7 +116,9 @@ class ChannelsRepository {
    * Raids channel.
    * @type {TChannelCommand}
    */
-  public raid = this.channelCommand('/raid');
+  public raid = (targetChannel: string, channel?: string) => {
+    this.client.say(`/raid ${targetChannel}`, channel);
+  }
 
   /**
    * Unraids channel.

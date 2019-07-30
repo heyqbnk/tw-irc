@@ -132,6 +132,251 @@ client.socket.on('message', event => {
 });
 ```
 
+## API documentation
+### Socket
+Remember, that you should not use this class usually, but if it required,
+you are free here.
+#### Constructor
+```typescript
+interface ISocketConstructorProps {
+  // Should connection be secure?
+  secure: boolean;
+}
+
+const socket = new Socket(props: ISocketConstructorProps);
+```
+#### Instance
+```typescript
+class Socket {
+  // Disconnects previously created WebSocket, creates a new instance of 
+  // WebSocket. Binds previously bound events.
+  connect: () => void;
+  
+  // Disconnects previously created WebSocket
+  disconnect: () => void;
+  
+  // Adds event listener to socket. Watch WebSocket.prototype.addEventListener
+  on: (
+    eventName: 'close' | 'error' | 'message' | 'open', 
+    listener: (ev: Event) => void,
+  ) => void;
+  
+  // Works the same as `on`, but removes the listener
+  off: (
+    eventName: 'close' | 'error' | 'message' | 'open', 
+    listener: (ev: Event) => void,
+  ) => void;
+  
+  // Returns current socket connection state
+  getReadyState: () => ESocketReadyState;
+  
+  // Send message via socket
+  send: (message: string) => void;
+}
+```
+
+### Client
+#### Constructor
+```typescript
+interface IClientConstructorProps {
+  auth?: {
+    // Your Twitch login 
+    login: string;
+    // Your password in form like "oauth:...". 
+    // You can get it here: https://twitchapps.com/tmi/
+    password: string;
+  };
+  // Should be connection secured? False by default.
+  secure?: boolean;
+}
+
+const client = new Client(props?: IClientConstructorProps);
+```
+#### Instance
+```typescript
+class Client {
+  // Socket instance
+  socket: Socket;
+  
+  // Repository for working with channels
+  channels: ChannelsRepository;
+  
+  // Repository for working with users
+  users: UsersRepository;
+  
+  // Initializes connection to IRC
+  connect: () => void;
+  
+  // Disconnects client
+  disconnect: () => void;
+  
+  // Method for listening of commands from IRC. Notice, that not all
+  // commands from EIRCCommand can be observed. Watch TObservableEvents
+  // to know which commands are observable.
+  on: <Command extends TObservableEvents>(
+    command: Command,
+    listener: TCallbacksMap[Command],
+  ) => void;
+  
+  // Same as "on", but just removes the listener
+  off: <Command extends TObservableEvents>(
+    command: Command,
+    listener: TCallbacksMap[Command],
+  ) => void;
+  
+  // Binds stated channel to this client. Useful, when you dont want to
+  // always state which channel you want to use for command. Client will
+  // automatically take last bound channel if it is not stated in method call.
+  bindChannel: (channel: string) => void;
+  
+  // Usual method for saying a message in channel. It is being used by
+  // "messages" and "users" repositories of client.
+  say: (message: string, channel?: string) => void;
+}
+```
+
+### UsersRepository
+This repository is used to to do actions connected with users.
+#### Constructor
+Constructor accepts single parameter - instance of Client. Repository will
+use it to send messages via `say`.
+#### Instance
+```typescript
+class UsersRepository {
+  // List of user-oriented commands
+  ban: (user: string, channel?: string) => void;
+  unban: (user: string, channel?: string) => void;
+  
+  mod: (user: string, channel?: string) => void;
+  unmod: (user: string, channel?: string) => void;
+  
+  timeout: (
+    user: string,
+    duration = '10m',
+    reason?: string,
+    channel?: string,
+  ) => void;
+  untimeout: (user: string, channel?: string) => void;
+  
+  vip: (user: string, channel?: string) => void;
+  unvip: (user: string, channel?: string) => void;
+  
+  whisper: (user: string, message: string, channel?: string) => void;
+}
+```
+
+### Channels Repository
+This repository is used to to do actions connected with channels.
+#### Constructor
+Constructor accepts single parameter - instance of Client. Repository will
+use it to send messages via `say`.
+#### Instance
+Firstly, lets state, that mode-oriented commands are always object with
+fields `on` and `off` which are functions. Something like that:
+```typescript
+interface IModeCommand {
+  on: (channel?: string) => void;
+  off: (channel?: string) => void;
+}
+```
+Description of instance: 
+```typescript
+class ChannelsRepository {
+  // Makes client join channel
+  join: (channel: string) => void;
+  
+  // Make client leave channel
+  leave: (channel: string) => void;
+  
+  // Emotes only mode
+  emoteOnly: IModeCommand;
+  
+  // Followers only mode
+  followersOnly: IModeCommand;
+  
+  // R9K mode
+  r9k: IModeCommand;
+  
+  // Slow mode
+  slowmode: IModeCommand;
+  
+  // Deletes message
+  deleteMessage: (msgId: string, channel?: string) => void;
+  
+  // Play commercial advertisements
+  playCommercial: (durationInSeconds: number, channel?: string) => void;
+  
+  // Clears chat
+  clearChat: (channel?: string) => void;
+  
+  // Host channel
+  host: (targetChannel: string, channel?: string) => void;
+  
+  // Unhost
+  unhost: (channel?: string) => void;
+  
+  // Raid channel
+  raid: (targetChannel: string, channel?: string) => void;
+    
+  // Unraid
+  unraid: (channel?: string) => void;
+  
+  // Leaves a marker with comment
+  marker: (comment: string, channel?: string) => void;
+  
+  // Says a message, looking like an author of its message did something.
+  me: (action: string, channel?: string) => void;
+  
+  // Changes current client color in chat
+  changeColor: (color: string, channel?: string) => void;
+}
+```
+
+### UtilsRepository
+This repository is kinda external but is opened on beta period due to
+not all commands are realized at this time. In the future it will be hidden
+via `private` security modifier.
+#### Constructor
+Constructor accepts single parameter - instance of Socket. Repository will
+use it to send messages via `send`.
+#### Instance
+```typescript
+class UtilsRepository {
+  // Sends raw message to socket connection
+  sendRawMessage: (message: string) => void;
+  
+  // Send an IRC command. Notice, that not commands are executable.
+  // Search for TExecutableCommands for more.
+  sendCommand: <Command extends TExecutableCommands>(
+    command: Command,
+    params: TCommandParams[Command],
+  ) => void;
+}
+```
+
+### EventsRepository
+This repository is used to handle IRC events, parsing and
+react on them with bound listeners.
+#### Constructor
+Constructor accepts single parameter - instance of Socket. Repository will
+use it to detect new messages and react.
+#### Instance
+```typescript
+class EventsRepository {
+  // Watch Client.on
+  on: <Command extends TObservableEvents>(
+    command: Command,
+    listener: TCallbacksMap[Command],
+  ) => void;
+  
+  // Watch Client.off
+  off: <Command extends TObservableEvents>(
+    command: Command,
+    listener: TCallbacksMap[Command],
+  ) => void;
+}
+```
+
 ## TODO
 - Full tests coverage.
 - Add correct authorization detection

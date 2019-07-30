@@ -61,11 +61,15 @@ class Socket {
 
   /**
    * Removes event listener.
+   * @param eventName
    * @param {(ev: Event) => void} listener
    */
-  public off = (listener: (ev: Event) => void) => {
+  public off = <K extends keyof WebSocketEventMap>(
+    eventName: K,
+    listener: (ev: WebSocketEventMap[K]) => any,
+  ) => {
     const foundIndex = this.listeners.findIndex(
-      item => item.listener === listener,
+      item => item.listener === listener && item.eventName === eventName,
     );
 
     if (foundIndex > -1) {
