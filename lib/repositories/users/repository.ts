@@ -13,7 +13,7 @@ class UsersRepository {
    * @param {string} command
    * @returns {TUserCommand}
    */
-  protected userCommand = (command: string): TUserCommand => {
+  private userCommand = (command: string): TUserCommand => {
     return (user, channel) => this.client.say(`${command} ${user}`, channel);
   };
 
@@ -55,8 +55,8 @@ class UsersRepository {
     channel?: string,
   ) =>
     this.client.say(
-      channel,
       `/timeout ${user} ${duration}${reason ? ` ${reason}` : ''}`,
+      channel,
     );
 
   /**

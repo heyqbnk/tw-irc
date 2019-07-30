@@ -1,5 +1,5 @@
 import { IListener, ISocketConstructorProps } from './types';
-import { ESocketReadyState } from '../types/irc';
+import { ESocketReadyState } from '../types';
 
 class Socket {
   private readonly path: string;
@@ -19,6 +19,11 @@ class Socket {
       throw new Error('WebSocket was not initialized');
     }
     this.listeners.forEach(({ eventName, listener }) => {
+      // Firstly remove already added event listener. We cannot check if
+      // is already bound, so lets just remove.
+      this.socket.removeEventListener(eventName, listener);
+
+      // Then add it again/
       this.socket.addEventListener(eventName, listener);
     });
   };
@@ -55,7 +60,7 @@ class Socket {
     this.listeners.push({ eventName, listener });
 
     if (this.socket) {
-      this.socket.addEventListener(eventName, listener);
+      this.bindEvents();
     }
   };
 
@@ -93,7 +98,12 @@ class Socket {
    * Sends a message.
    * @param {string} message
    */
-  public send = (message: string) => this.socket.send(message);
+  public send = (message: string) => {
+    if (!this.socket) {
+      throw new Error('Socket was not initialized. Call connect() first.');
+    }
+    this.socket.send(message);
+  };
 }
 
 export { Socket };

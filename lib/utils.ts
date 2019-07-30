@@ -62,8 +62,8 @@ function parseMetaValue(value: string): TMetaValue {
 
 /**
  * Parses IRC meta.
- * @param {string} meta
  * @returns {TMeta | null}
+ * @param metaRaw
  */
 function parseMeta(metaRaw: string): TMeta | null {
   const meta = metaRaw[0] === '@' ? metaRaw.slice(1) : metaRaw;
@@ -103,7 +103,9 @@ function parsePrefix(prefix: string): IPrefix | null {
  * @returns {string[]}
  */
 function prepareIRCMessage(message: string): string[] {
-  return message.split('\n').slice(0, -1);
+  return message.includes('\n')
+    ? message.split('\n').slice(0, -1)
+    : [message];
 }
 
 /**
@@ -142,4 +144,13 @@ function parseIRCMessage(message: string): IParsedIRCMessage {
   };
 }
 
-export { parseIRCMessage, prepareIRCMessage, IParsedIRCMessage };
+export {
+  parseIRCMessage,
+  prepareIRCMessage,
+  IParsedIRCMessage,
+  toCamelCase,
+  parseMeta,
+  parseMetaValue,
+  parsePrefix,
+  parseSafeMetaValue,
+};

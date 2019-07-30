@@ -150,7 +150,7 @@ class ChannelsRepository {
    * @param {string} channel
    */
   public changeColor = (color: string, channel?: string) => {
-    this.client.say(channel, `/color ${color}`);
+    this.client.say(`/color ${color}`, channel);
   };
 }
 

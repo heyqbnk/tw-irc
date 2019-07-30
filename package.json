@@ -1,6 +1,6 @@
 {
   "name": "tw-irc",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "TypeScript library for working with Twitch IRC",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,7 +17,7 @@
     "chat"
   ],
   "scripts": {
-    "prepublishOnly": "yarn lint && yarn build",
+    "prepublishOnly": "yarn test && yarn lint && yarn build",
     "build": "tsc",
     "lint": "tslint --fix -p tsconfig.json",
     "dev": "webpack-dev-server",
@@ -25,7 +25,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn lint"
+      "pre-commit": "yarn test && yarn lint"
     }
   },
   "devDependencies": {

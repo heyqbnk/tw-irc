@@ -142,7 +142,7 @@ class Client {
    * Binds this client to stated channel.
    * @param {string} channel
    */
-  public bindChannel = (channel: string) => (this.boundChannel = channel);
+  public bindChannel = (channel: string) => this.boundChannel = channel;
 
   /**
    * Say a message to channel.

@@ -1,8 +1,8 @@
 import { TTransformersMap } from './types';
-import { EIRCCommand } from '../../types/irc';
+import { EIRCCommand } from '../../types';
 import {
-  getChannel,
   joinChannelTransformer,
+  messageTransformer,
   leaveChannelTransformer,
 } from './utils';
 
@@ -14,12 +14,7 @@ import {
 const transformers: TTransformersMap = {
   [EIRCCommand.JoinChannel]: joinChannelTransformer,
   [EIRCCommand.LeaveChannel]: leaveChannelTransformer,
-  [EIRCCommand.Message]: message => ({
-    channel: getChannel(message),
-    message: message.data,
-    user: message.prefix.user,
-    userInfo: message.meta,
-  }),
+  [EIRCCommand.Message]: messageTransformer,
 };
 
 export { transformers };

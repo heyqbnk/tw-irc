@@ -1,5 +1,5 @@
 import { TCommandHandlersMap } from './types';
-import { EIRCCommand } from '../../types/irc';
+import { EIRCCommand } from '../../types';
 
 interface ICompileParams {
   command: EIRCCommand;
@@ -37,4 +37,4 @@ const commandHandlersMap: TCommandHandlersMap = {
     send(`${Message} #${channel} :${message}`),
 };
 
-export { commandHandlersMap };
+export { commandHandlersMap, compile };

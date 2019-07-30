@@ -1,7 +1,8 @@
 /// <reference types="jest" />
 import * as utils from '../../../utils';
 import { EventsRepository } from '../repository';
-import { EIRCCommand } from '../../../types/irc';
+import { Socket } from '../../../socket';
+import { EIRCCommand } from '../../../types';
 
 describe('repositories', () => {
   describe('events', () => {
@@ -9,32 +10,34 @@ describe('repositories', () => {
       describe('repository', () => {
         it(
           'Should bind listener on "message" event to socket when ' +
-            'repo is being initialized',
+          'repo is being initialized',
           () => {
-            const ws = mkWebSocket();
-            const addListenerSpy = jest.spyOn(ws, 'addEventListener');
-            const repo = new EventsRepository(ws);
+            const socket = mkSocket();
+            const onSpy = jest.spyOn(socket, 'on');
+            const repo = new EventsRepository(socket);
 
-            expect(repo.socket).toBe(ws);
-            expect(addListenerSpy).toHaveBeenCalledWith(
+            expect(onSpy).toHaveBeenCalledWith(
               'message',
-              expect.anything(),
+              (repo as any).onMessage,
             );
           },
         );
 
         it(
-          'Should parse message, when there is some message came from web' +
-            'socket connection',
+          'Should parse message, when there is some message came from' +
+          'socket connection',
           () => {
             const parseSpy = jest.spyOn(utils, 'parseIRCMessage');
-            const repo = new EventsRepository(mkWebSocket());
+            const socket = mkSocket();
             const message = ':jtv!jtv@jtv.tmi.js 999 :Some message';
+
+            new EventsRepository(socket);
 
             const ev = new MessageEvent('message', {
               data: message,
             });
-            repo.socket.dispatchEvent(ev);
+            socket.connect();
+            emitEvent(socket, ev);
 
             expect(parseSpy).toHaveBeenCalledWith(message);
           },
@@ -42,9 +45,10 @@ describe('repositories', () => {
 
         it(
           'Should call listeners associated with command if message command ' +
-            'is equal to theirs',
+          'is equal to theirs',
           () => {
-            const repo = new EventsRepository(mkWebSocket());
+            const socket = mkSocket();
+            const repo = new EventsRepository(socket);
             const channel = 'justintv';
             const message = 'Some message';
             const user = 'jtv';
@@ -57,8 +61,9 @@ describe('repositories', () => {
             const ev = new MessageEvent('message', {
               data: rawMessage,
             });
+            socket.connect();
             repo.on(EIRCCommand.Message, listener);
-            repo.socket.dispatchEvent(ev);
+            emitEvent(socket, ev);
 
             expect(listener).toHaveBeenCalledWith({
               channel,
@@ -70,27 +75,75 @@ describe('repositories', () => {
         );
 
         it(
-          "Should not call any listeners in case message command doesn't " +
-            'compare with theirs',
+          'Should not call any listeners in case message command doesn\'t ' +
+          'compare with theirs',
           () => {
-            const repo = new EventsRepository(mkWebSocket());
+            const socket = mkSocket();
+            const repo = new EventsRepository(socket);
             const rawMessage = 'PING :some-host.com';
             const listener = jest.fn();
 
             const ev = new MessageEvent('message', {
               data: rawMessage,
             });
+            socket.connect();
             repo.on(EIRCCommand.Message, listener);
-            repo.socket.dispatchEvent(ev);
+            emitEvent(socket, ev);
 
             expect(listener).not.toHaveBeenCalled();
           },
         );
+
+        describe('off', () => {
+          it('Should unbind existing listener', () => {
+            const socket = mkSocket();
+            const repo = new EventsRepository(socket);
+            const rawMessage = ':qbnk!qbnk@qbnk JOIN #summit1g';
+            const listener = jest.fn();
+
+            const ev = new MessageEvent('message', {
+              data: rawMessage,
+            });
+            socket.connect();
+            repo.on(EIRCCommand.JoinChannel, listener);
+            emitEvent(socket, ev);
+
+            repo.off(EIRCCommand.JoinChannel, listener);
+            emitEvent(socket, ev);
+
+            expect(listener).toHaveBeenCalledTimes(1);
+          });
+
+          it('Should not do anything if listener was not found', () => {
+            const socket = mkSocket();
+            const repo = new EventsRepository(socket);
+            const rawMessage = ':qbnk!qbnk@qbnk JOIN #summit1g';
+            const listener = jest.fn();
+
+            const ev = new MessageEvent('message', {
+              data: rawMessage,
+            });
+            socket.connect();
+            repo.on(EIRCCommand.JoinChannel, listener);
+            emitEvent(socket, ev);
+
+            expect(listener).toHaveBeenCalled();
+
+            repo.off(EIRCCommand.Message, listener);
+            emitEvent(socket, ev);
+
+            expect(listener).toHaveBeenCalledTimes(2);
+          });
+        });
       });
     });
   });
 });
 
-function mkWebSocket() {
-  return new WebSocket('ws://localhost');
+function mkSocket() {
+  return new Socket({ secure: false });
+}
+
+function emitEvent(socket: Socket, event: Event) {
+  (socket as any).socket.dispatchEvent(event);
 }

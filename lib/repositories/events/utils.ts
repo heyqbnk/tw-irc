@@ -1,6 +1,5 @@
-import { IEventParams } from '../../types/event-params';
+import { IEventParams, EIRCCommand } from '../../types';
 import { IParsedIRCMessage } from '../../utils';
-import { EIRCCommand } from '../../types/irc';
 
 function getChannel(message: IParsedIRCMessage) {
   return message.parameters[0].slice(1);
@@ -14,4 +13,20 @@ function joinChannelTransformer(
 
 const leaveChannelTransformer = joinChannelTransformer;
 
-export { getChannel, joinChannelTransformer, leaveChannelTransformer };
+function messageTransformer(
+  message: IParsedIRCMessage,
+): IEventParams[EIRCCommand.Message] {
+  return {
+    channel: getChannel(message),
+    message: message.data,
+    user: message.prefix.user,
+    userInfo: message.meta,
+  };
+}
+
+export {
+  getChannel,
+  joinChannelTransformer,
+  messageTransformer,
+  leaveChannelTransformer,
+};

@@ -1,7 +1,4 @@
-import {
-  TCommandParams,
-  TExecutableCommands,
-} from '../../types/command-params';
+import { TCommandParams, TExecutableCommands } from '../../types';
 
 import { commandHandlersMap } from './handlers';
 import { Socket } from '../../socket';
