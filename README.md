@@ -378,6 +378,63 @@ class EventsRepository {
 ```
 
 ## TODO
-- Full tests coverage.
-- Add correct authorization detection
-- Add NOTICE command support
+- Add commands support. We have to make a lot of typings here. Follow docs
+to know more - https://dev.twitch.tv/docs/irc/tags/:
+
+`MODE` - `event` - someone became moderator
+
+`CLEARCHAT` - `event` - clear chat for someone (someone was banned)
+
+`CLEARMSG` - `event` - admins removed this message
+
+`HOSTTARGET` - `event` - channel started to host this channel
+
+`NOTICE` - `event` - incoming notice
+
+`RECONNECT` - `event` - triggers when server restarts. Server requests a 
+reconnect by client with this action
+
+`ROOMSTATE` - `event` - triggers in moment we join or leave channel. Returns 
+channel current modes list
+
+`USERNOTICE` - `event` - notifies about some notice connected with user. 
+Sub, ban or kinda. Really a lot work with typings here.
+
+`USERSTATE` - returns current client settings (chat color etc.)
+
+`GLOBALUSERSTATE` - event - on successful login returns user info. We can
+use it to detect successful authentication. 
+
+- Fix JOIN event. User can join not channel, but chatroom. We are not
+currently sending info about chatrooms.
+
+- Workaround with PRIVMSG (chat rooms). A lot of changes should come in
+the feature.
+
+- Add message parse support via msg-id for NOTICE
+
+- Add return parameter `self`, which is responsible for detecting if
+event is connected with current client.
+
+- Add warning, that we will not support NAMES command due to it is not 
+working as expected (as said Twitch - 
+https://dev.twitch.tv/docs/irc/membership/#names-twitch-membership).
+Expected behaviour is to get real list of chatters, but there are cases
+we get only mods. Or try to realize?
+
+- Add an error message, if password passed to client is not started with
+"oauth:". Append a reference, where the user can get this token:
+https://twitchapps.com/tmi/ or https://dev.twitch.tv/docs/authentication/
+
+- Add typings for all metas from events
+
+- Try to do something with meta value like "moderator/5". Maybe, parse it like
+`{ name: 'moderator', value: 5 }`
+
+- Add classes description via interface. Make them implement these interfaces
+and copy their links to API documentation. So we can synchronize docs and
+real interfaces.
+
+- Rework `prepareIRCMessage`. It is enough to check if "\n" is in the end of
+string instead of splicing (0, -1). We can make it a bit more unified with this
+check.
