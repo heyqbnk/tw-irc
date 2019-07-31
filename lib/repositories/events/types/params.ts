@@ -1,4 +1,4 @@
-import { EIRCCommand, TMeta } from './irc';
+import { EIRCCommand, TMeta } from '../../../types';
 
 interface IDefaultEventParams {
   channel: string;
@@ -14,14 +14,8 @@ interface IMessageEventParams extends IDefaultEventParams {
   userInfo: TMeta;
 }
 
-type TObservableEvents = EIRCCommand.Message
-  | EIRCCommand.JoinChannel
-  | EIRCCommand.LeaveChannel;
-
-interface IEventParams {
+export interface IEventParams {
   [EIRCCommand.JoinChannel]: IJoinChannelEventParams;
   [EIRCCommand.LeaveChannel]: IJoinChannelEventParams;
   [EIRCCommand.Message]: IMessageEventParams;
 }
-
-export { IEventParams, TObservableEvents, IJoinChannelEventParams };

@@ -3,6 +3,9 @@ import * as utils from '../../../utils';
 import { EventsRepository } from '../repository';
 import { Socket } from '../../../socket';
 import { EIRCCommand } from '../../../types';
+import { mockWebSocket } from '../../../__mocks__/websocket';
+
+mockWebSocket();
 
 describe('repositories', () => {
   describe('events', () => {
@@ -12,7 +15,7 @@ describe('repositories', () => {
           'Should bind listener on "message" event to socket when ' +
           'repo is being initialized',
           () => {
-            const socket = mkSocket();
+            const socket = new Socket({ secure: false });
             const onSpy = jest.spyOn(socket, 'on');
             const repo = new EventsRepository(socket);
 
@@ -28,7 +31,7 @@ describe('repositories', () => {
           'socket connection',
           () => {
             const parseSpy = jest.spyOn(utils, 'parseIRCMessage');
-            const socket = mkSocket();
+            const socket = new Socket({ secure: false });
             const message = ':jtv!jtv@jtv.tmi.js 999 :Some message';
 
             new EventsRepository(socket);
@@ -47,7 +50,7 @@ describe('repositories', () => {
           'Should call listeners associated with command if message command ' +
           'is equal to theirs',
           () => {
-            const socket = mkSocket();
+            const socket = new Socket({ secure: false });
             const repo = new EventsRepository(socket);
             const channel = 'justintv';
             const message = 'Some message';
@@ -78,7 +81,7 @@ describe('repositories', () => {
           'Should not call any listeners in case message command doesn\'t ' +
           'compare with theirs',
           () => {
-            const socket = mkSocket();
+            const socket = new Socket({ secure: false });
             const repo = new EventsRepository(socket);
             const rawMessage = 'PING :some-host.com';
             const listener = jest.fn();
@@ -96,7 +99,7 @@ describe('repositories', () => {
 
         describe('off', () => {
           it('Should unbind existing listener', () => {
-            const socket = mkSocket();
+            const socket = new Socket({ secure: false });
             const repo = new EventsRepository(socket);
             const rawMessage = ':qbnk!qbnk@qbnk JOIN #summit1g';
             const listener = jest.fn();
@@ -115,7 +118,7 @@ describe('repositories', () => {
           });
 
           it('Should not do anything if listener was not found', () => {
-            const socket = mkSocket();
+            const socket = new Socket({ secure: false });
             const repo = new EventsRepository(socket);
             const rawMessage = ':qbnk!qbnk@qbnk JOIN #summit1g';
             const listener = jest.fn();
@@ -139,10 +142,6 @@ describe('repositories', () => {
     });
   });
 });
-
-function mkSocket() {
-  return new Socket({ secure: false });
-}
 
 function emitEvent(socket: Socket, event: Event) {
   (socket as any).socket.dispatchEvent(event);

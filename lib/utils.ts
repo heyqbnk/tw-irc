@@ -1,19 +1,4 @@
-import { EIRCCommand, TMeta, TMetaValue } from './types/irc';
-
-interface IPrefix {
-  nickName: string | null;
-  user: string | null;
-  host: string;
-}
-
-interface IParsedIRCMessage {
-  prefix: IPrefix | null;
-  meta: TMeta | null;
-  parameters: string[] | null;
-  command: EIRCCommand | string;
-  data: string;
-  raw: string;
-}
+import { IPrefix, TMeta, TMetaValue, IParsedIRCMessage } from './types';
 
 /**
  * Converts text to camel case.
@@ -103,9 +88,14 @@ function parsePrefix(prefix: string): IPrefix | null {
  * @returns {string[]}
  */
 function prepareIRCMessage(message: string): string[] {
-  return message.includes('\n')
-    ? message.split('\n').slice(0, -1)
-    : [message];
+  if (message.length === 0) {
+    return [];
+  }
+  if (message[message.length - 1] === '\n') {
+    return message.slice(0, -1).split('\n');
+  }
+
+  return message.split('\n');
 }
 
 /**

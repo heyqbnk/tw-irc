@@ -1,10 +1,13 @@
-import { ICommandListener, TCallbacksMap } from './types';
+import {
+  ICommandListener,
+  IEventsRepository,
+  TListeningManipulator,
+} from './types';
 import { parseIRCMessage } from '../../utils';
 import { transformers } from './transformers';
-import { TObservableEvents } from '../../types';
 import { Socket } from '../../socket';
 
-export class EventsRepository {
+export class EventsRepository implements IEventsRepository {
   private readonly commandListeners: ICommandListener[] = [];
   private readonly socket: Socket;
 
@@ -32,25 +35,11 @@ export class EventsRepository {
     });
   };
 
-  /**
-   * Binds event listener for command.
-   * @param {Command} command
-   * @param {TCallbacksMap[Command]} listener
-   */
-  public on = <Command extends TObservableEvents>(
-    command: Command,
-    listener: TCallbacksMap[Command],
-  ) => this.commandListeners.push({ command, listener });
+  public on: TListeningManipulator = (command, listener) => {
+    this.commandListeners.push({ command, listener });
+  };
 
-  /**
-   * Removes command listener.
-   * @param command
-   * @param {Listener} listener
-   */
-  public off = <Command extends TObservableEvents>(
-    command: Command,
-    listener: TCallbacksMap[Command],
-  ) => {
+  public off: TListeningManipulator = (command, listener) => {
     const foundIndex = this.commandListeners.findIndex(
       item => item.listener === listener && item.command === command,
     );

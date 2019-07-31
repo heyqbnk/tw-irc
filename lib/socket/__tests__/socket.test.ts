@@ -1,5 +1,8 @@
 import { Socket } from '../socket';
-import { ESocketReadyState } from '../../types';
+import { EIRCCommand, ESocketReadyState } from '../../types';
+import { mockWebSocket, MockWebSocket } from '../../__mocks__/websocket';
+
+mockWebSocket();
 
 describe('socket', () => {
   it('"connect" creates WebSocket instance and closes previous connection', () => {
@@ -9,10 +12,10 @@ describe('socket', () => {
     socket.connect();
     const ws = getSocket(socket);
     const closeSpy = jest.spyOn(ws, 'close');
-    expect(ws).toBeInstanceOf(WebSocket);
+    // Previously we have overridden WebSocket with MockWebSocket, so check it
+    expect(ws).toBeInstanceOf(MockWebSocket);
 
     socket.connect();
-
     expect(closeSpy).toBeCalledWith();
   });
 
@@ -71,8 +74,7 @@ describe('socket', () => {
 
     socket.connect();
     const spy = jest.spyOn(getSocket(socket), 'send')
-      .mockImplementationOnce(() => {
-      });
+      .mockImplementationOnce(jest.fn);
     socket.send('message');
     expect(spy).toHaveBeenCalledWith('message');
   });
@@ -82,8 +84,35 @@ describe('socket', () => {
 
     expect(() => (socket as any).bindEvents()).toThrow();
   });
+
+  it('when message is received, in case it is PING command, respond with ' +
+    'PONG. Otherwise, ignore', () => {
+    const socket = new Socket({ secure: true });
+    socket.connect();
+
+    const sendSpy = jest.spyOn(socket, 'send')
+      .mockImplementationOnce(jest.fn);
+    const messageEvent = new MessageEvent('message', {
+      data: 'PING :tmi.twitch.tv',
+    });
+    emitEvent(socket, messageEvent);
+
+    expect(sendSpy).toHaveBeenCalledWith(EIRCCommand.Pong);
+    sendSpy.mockReset();
+
+    const anotherMessage = new MessageEvent('message', {
+      data: ':qbnk!qbnk@qbnk JOIN #qbnk',
+    });
+    emitEvent(socket, anotherMessage);
+
+    expect(sendSpy).not.toHaveBeenCalled();
+  });
 });
 
 function getSocket(socket: Socket): WebSocket | undefined {
   return (socket as any).socket;
+}
+
+function emitEvent(socket: Socket, event: Event) {
+  (socket as any).socket.dispatchEvent(event);
 }

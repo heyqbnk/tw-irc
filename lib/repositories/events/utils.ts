@@ -1,4 +1,5 @@
-import { IEventParams, EIRCCommand } from '../../types';
+import { EIRCCommand } from '../../types';
+import { IEventParams } from './types';
 import { IParsedIRCMessage } from '../../utils';
 
 function getChannel(message: IParsedIRCMessage) {

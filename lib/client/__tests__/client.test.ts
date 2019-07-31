@@ -1,24 +1,47 @@
 import { Client } from '../client';
-import { generateRandomLogin } from '../utils';
+import * as utils from '../utils';
 import { EIRCCommand } from '../../types';
 import { Socket } from '../../socket';
+import { mockWebSocket } from '../../__mocks__/websocket';
 
-jest.mock('../utils');
+mockWebSocket();
 
 describe('client', () => {
   describe('Client', () => {
-    it('if auth data is not stated, sets default random data. Otherwise set ' +
-      'stated', () => {
-      new Client();
+    describe('constructor', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
 
-      expect(generateRandomLogin).toHaveBeenCalledTimes(2);
+      it('should generate random auth data, if it is not passed', () => {
+        const generateSpy = jest.spyOn(utils, 'generateRandomAuth');
+        const client = new Client();
 
-      const auth = {
-        login: 'fan',
-        password: 'boy',
-      };
-      const client = new Client({ auth });
-      expect((client as any).auth).toEqual(auth);
+        expect((client as any).auth).toEqual({
+          login: expect.any(String),
+          password: expect.any(String),
+        });
+        expect(generateSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('should warn user that his password is invalid and generate random ' +
+        'auth data, in case, password is invalid', () => {
+        const auth = {
+          login: 'husky',
+          password: 'woof!',
+        };
+        const generateSpy = jest.spyOn(utils, 'generateRandomAuth');
+        const warnSpy = jest.spyOn(utils, 'warnInvalidPassword');
+        const client = new Client({ auth });
+
+        expect((client as any).auth).not.toEqual(auth);
+        expect((client as any).auth).toEqual({
+          login: expect.any(String),
+          password: expect.any(String),
+        });
+        expect(generateSpy).toHaveBeenCalledTimes(1);
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('"connect" call socket.connect()', () => {
@@ -96,7 +119,7 @@ describe('client', () => {
       '"commands". Sends authentication data', () => {
       const auth = {
         login: 'husky',
-        password: 'white',
+        password: 'oauth:white',
       };
       const client = new Client({ auth });
       client.connect();
@@ -116,30 +139,6 @@ describe('client', () => {
         .toHaveBeenCalledWith(`${EIRCCommand.Password} ${auth.password}`);
       expect(sendSpy)
         .toHaveBeenCalledWith(`${EIRCCommand.Nickname} ${auth.login}`);
-    });
-
-    it('when message is received, in case it is PING command, respond with ' +
-      'PONG. Otherwise, ignore', () => {
-      const client = new Client();
-      client.connect();
-
-      const sendSpy = jest.spyOn(client.utils, 'sendRawMessage')
-        .mockImplementation(() => {
-        });
-      const messageEvent = new MessageEvent('message', {
-        data: 'PING :tmi.twitch.tv',
-      });
-      emitEvent(client.socket, messageEvent);
-
-      expect(sendSpy).toHaveBeenCalledWith(EIRCCommand.Pong);
-      sendSpy.mockReset();
-
-      const anotherMessage = new MessageEvent('message', {
-        data: ':qbnk!qbnk@qbnk JOIN #qbnk',
-      });
-      emitEvent(client.socket, anotherMessage);
-
-      expect(sendSpy).not.toHaveBeenCalled();
     });
   });
 });

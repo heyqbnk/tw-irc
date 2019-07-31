@@ -71,14 +71,22 @@ describe('utils', () => {
   });
 
   describe('prepareIRCMessage', () => {
-    it('should return an array of string splitted by "\\n" in case at ' +
-      'least one "\\n" was found. Otherwise, returns an array with single ' +
-      'element - passed value', () => {
-      expect(prepareIRCMessage('Hello!\nWoof?\n')).toEqual([
+    it('should return empty array if message length is 0', () => {
+      expect(prepareIRCMessage('')).toHaveLength(0);
+    });
+
+    it('should splice last letter of message if it is "\\n" and return an ' +
+      'array of strings, we received due to split other part of ' +
+      'message by "\\n"', () => {
+      expect(prepareIRCMessage('some\nmessage\n')).toEqual(['some', 'message']);
+    });
+
+    it('should return an array of strings, we received due to split ' +
+      'message by "\\n"', () => {
+      expect(prepareIRCMessage('Hello!\nWoof?')).toEqual([
         'Hello!',
         'Woof?',
       ]);
-      expect(prepareIRCMessage('Woof!')).toEqual(['Woof!']);
     });
   });
 

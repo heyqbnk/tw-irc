@@ -1,15 +1,24 @@
-import { IAuthInfo, IClientConstructorProps } from './types';
+import {
+  IAuthInfo,
+  IClient,
+  IClientConstructorProps,
+  TListeningManipulator,
+} from './types';
 import { Socket } from '../socket';
-import { EIRCCommand, TObservableEvents } from '../types';
+import { EIRCCommand } from '../types';
 
 import { UtilsRepository } from '../repositories/utils';
 import { ChannelsRepository } from '../repositories/channels';
 import { UsersRepository } from '../repositories/users';
-import { EventsRepository, TCallbacksMap } from '../repositories/events';
-import { parseIRCMessage, prepareIRCMessage } from '../utils';
-import { generateRandomLogin } from './utils';
+import { EventsRepository } from '../repositories/events';
 
-class Client {
+import {
+  generateRandomAuth,
+  isPasswordValid,
+  warnInvalidPassword,
+} from './utils';
+
+class Client implements IClient {
   /**
    * Authentication data.
    */
@@ -25,40 +34,29 @@ class Client {
    */
   private events: EventsRepository;
 
-  /**
-   * Custom Socket instance.
-   */
   public readonly socket: Socket;
-
-  /**
-   * Repository to work with channels.
-   * @type {ChannelsRepository}
-   */
   public channels = new ChannelsRepository(this);
-
-  /**
-   * Repository to communicate with users.
-   * @type {UsersRepository}
-   */
   public users = new UsersRepository(this);
-
-  /**
-   * Repository containing some useful methods.
-   */
   public utils: UtilsRepository;
 
   public constructor(props: IClientConstructorProps = {}) {
     const { secure, auth } = props;
 
-    // If auth data is not set, we have to do it. This data was taken
-    // from websocket frames on somebody's channel.
-    this.auth = auth || {
-      login: generateRandomLogin(),
-      password: generateRandomLogin(),
-    };
+    if (auth) {
+      if (isPasswordValid(auth.password)) {
+        this.auth = auth;
+      } else {
+        warnInvalidPassword(auth.password);
+
+        // If auth data is invalid, generate some random authentication data
+        this.auth = generateRandomAuth();
+      }
+    } else {
+      this.auth = generateRandomAuth();
+    }
+
     const socket = new Socket({ secure });
     socket.on('open', this.onWebSocketOpen);
-    socket.on('message', this.onWebSocketMessage);
 
     // Initialize repositories.
     this.utils = new UtilsRepository(socket);
@@ -88,67 +86,20 @@ class Client {
     sendRawMessage(`${EIRCCommand.Nickname} ${login}`);
   };
 
-  /**
-   * This listener is required to detect Twitch PING message to respond
-   * with PONG.
-   */
-  private onWebSocketMessage = (event: MessageEvent) => {
-    const message = event.data as string;
-    const prepared = prepareIRCMessage(message);
-
-    prepared.forEach(msg => {
-      const parsed = parseIRCMessage(msg);
-
-      // If command was PING, respond with PONG
-      if (parsed.command === EIRCCommand.Ping) {
-        this.utils.sendRawMessage(EIRCCommand.Pong);
-      }
-    });
-  };
-
-  /**
-   * Create a client connection to IRC.
-   */
   public connect = () => this.socket.connect();
 
-  /**
-   * Disconnects web socket.
-   */
   public disconnect = () => this.socket.disconnect();
 
-  /**
-   * Shortcut to commands events binding.
-   * @param command
-   * @param {TCallbacksMap[Command]} listener
-   * @returns {number}
-   */
-  public on = <Command extends TObservableEvents>(
-    command: Command,
-    listener: TCallbacksMap[Command],
-  ) => this.events.on(command, listener);
+  public on: TListeningManipulator = (command, listener) => {
+    this.events.on(command, listener);
+  };
 
-  /**
-   * Shortcut to commands events unbinding.
-   * @param command
-   * @param {TCallbacksMap[Command]} listener
-   * @returns {number}
-   */
-  public off = <Command extends TObservableEvents>(
-    command: Command,
-    listener: TCallbacksMap[Command],
-  ) => this.events.off(command, listener);
+  public off: TListeningManipulator = (command, listener) => {
+    this.events.off(command, listener);
+  };
 
-  /**
-   * Binds this client to stated channel.
-   * @param {string} channel
-   */
   public bindChannel = (channel: string) => this.boundChannel = channel;
 
-  /**
-   * Say a message to channel.
-   * @param {string} message
-   * @param {string} channel
-   */
   public say = (message: string, channel?: string) => {
     if (!channel && !this.boundChannel) {
       throw new Error('Cannot send message due to channel is not stated');

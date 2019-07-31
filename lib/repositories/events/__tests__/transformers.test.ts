@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import { EIRCCommand } from '../../../types/irc';
+import { EIRCCommand } from '../../../types';
 import { transformers } from '../transformers';
 import { IParsedIRCMessage } from '../../../utils';
 

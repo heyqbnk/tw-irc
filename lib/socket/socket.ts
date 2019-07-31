@@ -1,7 +1,13 @@
-import { IListener, ISocketConstructorProps } from './types';
-import { ESocketReadyState } from '../types';
+import {
+  IListener,
+  ISocket,
+  ISocketConstructorProps,
+  TListeningManipulator,
+} from './types';
+import { EIRCCommand, ESocketReadyState } from '../types';
+import { parseIRCMessage, prepareIRCMessage } from '../utils';
 
-class Socket {
+class Socket implements ISocket {
   private readonly path: string;
   private readonly listeners: IListener[] = [];
   private socket: WebSocket;
@@ -12,8 +18,13 @@ class Socket {
     this.path = secure
       ? 'wss://irc-ws.chat.twitch.tv:443'
       : 'ws://irc-ws.chat.twitch.tv:80';
+
+    this.on('message', this.onMessage);
   }
 
+  /**
+   * Rebinds listeners to WebSocket
+   */
   private bindEvents = () => {
     if (!this.socket) {
       throw new Error('WebSocket was not initialized');
@@ -29,8 +40,23 @@ class Socket {
   };
 
   /**
-   * Initializes a socket connection.
+   * This listener is required to detect Twitch PING message to respond
+   * with PONG.
    */
+  private onMessage = (event: MessageEvent) => {
+    const message = event.data as string;
+    const prepared = prepareIRCMessage(message);
+
+    prepared.forEach(msg => {
+      const parsed = parseIRCMessage(msg);
+
+      // If command was PING, respond with PONG
+      if (parsed.command === EIRCCommand.Ping) {
+        this.send(EIRCCommand.Pong);
+      }
+    });
+  };
+
   public connect = () => {
     if (this.socket) {
       this.socket.close();
@@ -39,24 +65,13 @@ class Socket {
     this.bindEvents();
   };
 
-  /**
-   * Closes socket connection
-   */
   public disconnect = () => {
     if (this.socket) {
       this.socket.close();
     }
   };
 
-  /**
-   * Binds event to socket.
-   * @param {K} eventName
-   * @param {(ev: WebSocketEventMap[K]) => any} listener
-   */
-  public on = <K extends keyof WebSocketEventMap>(
-    eventName: K,
-    listener: (ev: WebSocketEventMap[K]) => any,
-  ) => {
+  public on: TListeningManipulator = (eventName, listener) => {
     this.listeners.push({ eventName, listener });
 
     if (this.socket) {
@@ -64,15 +79,7 @@ class Socket {
     }
   };
 
-  /**
-   * Removes event listener.
-   * @param eventName
-   * @param {(ev: Event) => void} listener
-   */
-  public off = <K extends keyof WebSocketEventMap>(
-    eventName: K,
-    listener: (ev: WebSocketEventMap[K]) => any,
-  ) => {
+  public off: TListeningManipulator = (eventName, listener) => {
     const foundIndex = this.listeners.findIndex(
       item => item.listener === listener && item.eventName === eventName,
     );
@@ -82,10 +89,6 @@ class Socket {
     }
   };
 
-  /**
-   * Gets current connection ready state.
-   * @returns {ESocketReadyState}
-   */
   public getReadyState = (): ESocketReadyState => {
     if (!this.socket) {
       return ESocketReadyState.Closed;
@@ -94,10 +97,6 @@ class Socket {
     return this.socket.readyState as ESocketReadyState;
   };
 
-  /**
-   * Sends a message.
-   * @param {string} message
-   */
   public send = (message: string) => {
     if (!this.socket) {
       throw new Error('Socket was not initialized. Call connect() first.');

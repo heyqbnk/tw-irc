@@ -5,22 +5,22 @@ module.exports = {
     '!lib/**/index.ts',
     '!lib/**/types.ts',
     '!lib/**/types/**/**.*',
-    '!lib/**/(__tests__|__mocks__|__stubs__)/*.{ts,js}'
+    '!lib/**/(__tests__|__mocks__|__stubs__)/*.{ts,js}',
   ],
   coverageDirectory: './coverage',
   coverageThreshold: {
     global: {
-      branches: 90,
-      functions: 90,
-      lines: 90,
-      statements: 90
-    }
+      branches: 100,
+      functions: 100,
+      lines: 100,
+      statements: 100,
+    },
   },
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': 'ts-jest',
   },
   testMatch: [
-    '<rootDir>/lib/**/__tests__/**/*.test.(ts|js)'
+    '<rootDir>/lib/**/__tests__/**/*.test.(ts|js)',
   ],
   verbose: true,
   moduleFileExtensions: ['js', 'ts'],

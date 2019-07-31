@@ -138,308 +138,503 @@ client.socket.on('message', event => {
 ```
 
 ## API documentation
-### Socket
-Remember, that you should not use this class usually, but if it required,
-you are free here.
-#### Constructor
+### Types
+#### Enums
+```typescript
+/**
+ * List of commands which can be sent to or from IRC.
+ */
+enum EIRCCommand {
+  CapabilityRequest = 'CAP REQ',
+  JoinChannel = 'JOIN',
+  LeaveChannel = 'PART',
+  Message = 'PRIVMSG',
+  Nickname = 'NICK',
+  Password = 'PASS',
+  Ping = 'PING',
+  Pong = 'PONG',
+}
+
+/**
+ * List of states of socket connection.
+ */
+enum ESocketReadyState {
+  Connecting = 0,
+  Open = 1,
+  Closing = 2,
+  Closed = 3,
+}
+```
+
+#### Observable events and executable commands
+```typescript
+/**
+ * List of observable events.
+ */
+type TObservableEvents = EIRCCommand.Message
+  | EIRCCommand.JoinChannel
+  | EIRCCommand.LeaveChannel;
+
+/**
+ * List of executable commands.
+ */
+type TExecutableCommands = EIRCCommand.JoinChannel
+  | EIRCCommand.LeaveChannel
+  | EIRCCommand.Message;
+```
+
+#### Parsing artifacts
+```typescript
+type TMetaValue = null | string | number | Array<string | number>;
+type TMeta = Record<string, TMetaValue | TMetaValue[] | null>;
+
+interface IPrefix {
+  nickName: string | null;
+  user: string | null;
+  host: string;
+}
+
+interface IParsedIRCMessage {
+  prefix: IPrefix | null;
+  meta: TMeta | null;
+  parameters: string[] | null;
+  command: EIRCCommand | string;
+  data: string;
+  raw: string;
+}
+```
+
+#### Returned parameters from EventsRepository to listeners
+```typescript
+interface IDefaultEventParams {
+  channel: string;
+}
+
+interface IJoinChannelEventParams extends IDefaultEventParams {
+  user: string;
+}
+
+interface IMessageEventParams extends IDefaultEventParams {
+  message: string;
+  user: string;
+  userInfo: TMeta;
+}
+
+export interface IEventParams {
+  [EIRCCommand.JoinChannel]: IJoinChannelEventParams;
+  [EIRCCommand.LeaveChannel]: IJoinChannelEventParams;
+  [EIRCCommand.Message]: IMessageEventParams;
+}
+```
+
+#### Definitions listeners for events
+```typescript
+/**
+ * Generic type to describe required callback for event.
+ */
+type TCallback<Params> = (params: Params) => void;
+
+/**
+ * Description of callbacks for commands.
+ * With this type it is easy to create new callbacks description.
+ */
+type TCallbacksMap = {
+  [Command in TObservableEvents]: TCallback<IEventParams[Command]>;
+};
+```
+
+#### Definitions of parameters for commands
+```typescript
+interface ICommandDefaultParams {
+  channel: string;
+}
+
+interface IMessageCommandParams extends ICommandDefaultParams {
+  message: string;
+}
+
+interface ICommandParams {
+  [EIRCCommand.JoinChannel]: ICommandDefaultParams;
+  [EIRCCommand.LeaveChannel]: ICommandDefaultParams;
+  [EIRCCommand.Message]: IMessageCommandParams;
+}
+
+type TCommandParams = {
+  [Command in TExecutableCommands]: ICommandParams[Command];
+};
+```
+
+### Classes definitions
+
+#### Socket
+`Socket` is responsible for creating connection to IRC and keeping it alive.
+##### Constructor
 ```typescript
 interface ISocketConstructorProps {
-  // Should connection be secure?
+  /**
+   * Sets connection security level.
+   */
   secure: boolean;
 }
-
-const socket = new Socket(props: ISocketConstructorProps);
 ```
-#### Instance
+##### Instance
 ```typescript
-class Socket {
-  // Disconnects previously created WebSocket, creates a new instance of 
-  // WebSocket. Binds previously bound events.
-  connect: () => void;
-  
-  // Disconnects previously created WebSocket
-  disconnect: () => void;
-  
-  // Adds event listener to socket. Watch WebSocket.prototype.addEventListener
-  on: (
-    eventName: 'close' | 'error' | 'message' | 'open', 
-    listener: (ev: Event) => void,
-  ) => void;
-  
-  // Works the same as `on`, but removes the listener
-  off: (
-    eventName: 'close' | 'error' | 'message' | 'open', 
-    listener: (ev: Event) => void,
-  ) => void;
-  
-  // Returns current socket connection state
-  getReadyState: () => ESocketReadyState;
-  
-  // Send message via socket
-  send: (message: string) => void;
+type TListeningManipulator = <K extends keyof WebSocketEventMap>(
+  eventName: K,
+  listener: (ev: WebSocketEventMap[K]) => any,
+) => void;
+
+interface ISocket {
+  /**
+   * Initializes a socket connection.
+   */
+  connect(): void;
+
+  /**
+   * Closes socket connection.
+   */
+  disconnect(): void;
+
+  /**
+   * Adds socket event listener.
+   */
+  on: TListeningManipulator;
+
+  /**
+   * Removes socket event listener.
+   */
+  off: TListeningManipulator;
+
+  /**
+   * Gets current connection state.
+   * @returns {ESocketReadyState}
+   */
+  getReadyState(): ESocketReadyState;
+
+  /**
+   * Sends a message by socket.
+   * @param {string} message
+   */
+  send(message: string): void;
 }
 ```
 
-### Client
-#### Constructor
+#### Client
+Client is a core class which realizes all manipulations of this library.
+##### Constructor
 ```typescript
+interface IAuthInfo {
+  login: string;
+  password: string;
+}
+
 interface IClientConstructorProps {
-  auth?: {
-    // Your Twitch login 
-    login: string;
-    // Your password in form like "oauth:...". 
-    // You can get it here: https://twitchapps.com/tmi/
-    password: string;
-  };
-  // Should be connection secured? False by default.
+  auth?: IAuthInfo;
   secure?: boolean;
 }
 
 const client = new Client(props?: IClientConstructorProps);
 ```
-#### Instance
+##### Instance
 ```typescript
-class Client {
-  // Socket instance
+type TListeningManipulator = <Command extends TObservableEvents>(
+  command: Command,
+  listener: TCallbacksMap[Command],
+) => void;
+
+interface IClient {
+  /**
+   * Socket instance. Used to create connection to IRC.
+   */
   socket: Socket;
-  
-  // Repository for working with channels
+
+  /**
+   * Repository to work with channels.
+   */
   channels: ChannelsRepository;
-  
-  // Repository for working with users
+
+  /**
+   * Repository to communicate with users.
+   */
   users: UsersRepository;
-  
-  // Initializes connection to IRC
-  connect: () => void;
-  
-  // Disconnects client
-  disconnect: () => void;
-  
-  // Method for listening of commands from IRC. Notice, that not all
-  // commands from EIRCCommand can be observed. Watch TObservableEvents
-  // to know which commands are observable.
-  on: <Command extends TObservableEvents>(
-    command: Command,
-    listener: TCallbacksMap[Command],
-  ) => void;
-  
-  // Same as "on", but just removes the listener
-  off: <Command extends TObservableEvents>(
-    command: Command,
-    listener: TCallbacksMap[Command],
-  ) => void;
-  
-  // Binds stated channel to this client. Useful, when you dont want to
-  // always state which channel you want to use for command. Client will
-  // automatically take last bound channel if it is not stated in method call.
-  bindChannel: (channel: string) => void;
-  
-  // Usual method for saying a message in channel. It is being used by
-  // "messages" and "users" repositories of client.
-  say: (message: string, channel?: string) => void;
+
+  /**
+   * Repository containing some useful methods.
+   */
+  utils: UtilsRepository;
+
+  /**
+   * Create a client connection to IRC.
+   */
+  connect(): void;
+
+  /**
+   * Disconnects web socket.
+   */
+  disconnect(): void;
+
+  /**
+   * Shortcut to commands events binding. Make listener call when command
+   * is being detected.
+   */
+  on: TListeningManipulator;
+
+  /**
+   * Removes event listener from command.
+   */
+  off: TListeningManipulator;
+
+  /**
+   * Binds this client to passed channel.
+   * @param {string} channel
+   */
+  bindChannel(channel: string): void;
+
+  /**
+   * Says a message to channel.
+   * @param {string} message
+   * @param {string} channel
+   */
+  say(message: string, channel?: string): void;
 }
 ```
 
-### UsersRepository
+#### UsersRepository
 This repository is used to to do actions connected with users.
-#### Constructor
-Constructor accepts single parameter - instance of Client. Repository will
+##### Constructor
+Constructor accepts single parameter - instance of `Client`. Repository will
 use it to send messages via `say`.
-#### Instance
+##### Instance
 ```typescript
-class UsersRepository {
-  // List of user-oriented commands
-  ban: (user: string, channel?: string) => void;
-  unban: (user: string, channel?: string) => void;
-  
-  mod: (user: string, channel?: string) => void;
-  unmod: (user: string, channel?: string) => void;
-  
-  timeout: (
+type TUserCommand = (user: string, channel?: string) => void;
+
+interface IUsersRepository {
+  /**
+   * Bans user.
+   */
+  ban: TUserCommand;
+
+  /**
+   * Unbans user.
+   */
+  unban: TUserCommand;
+
+  /**
+   * Mods user.
+   */
+  mod: TUserCommand;
+
+  /**
+   * Unmods user.
+   */
+  unmod: TUserCommand;
+
+  /**
+   * Makes user VIP.
+   */
+  vip: TUserCommand;
+
+  /**
+   * Removes user's VIP status.
+   */
+  unvip: TUserCommand;
+
+  /**
+   * Gives user a timeout.
+   * @param {string} user
+   * @param {string} duration
+   * @param {string} reason
+   * @param {string} channel
+   */
+  timeout(
     user: string,
-    duration = '10m',
+    duration?: string,
     reason?: string,
     channel?: string,
-  ) => void;
-  untimeout: (user: string, channel?: string) => void;
-  
-  vip: (user: string, channel?: string) => void;
-  unvip: (user: string, channel?: string) => void;
-  
-  whisper: (user: string, message: string, channel?: string) => void;
+  ): void;
+
+  /**
+   * Removes user's timeout.
+   */
+  untimeout: TUserCommand;
+
+  /**
+   * Whispers someone.
+   * @param {string} user
+   * @param {string} message
+   * @param {string} channel
+   */
+  whisper(
+    user: string,
+    message: string,
+    channel?: string,
+  ): void;
 }
 ```
 
-### Channels Repository
+#### Channels Repository
 This repository is used to to do actions connected with channels.
-#### Constructor
-Constructor accepts single parameter - instance of Client. Repository will
+##### Constructor
+Constructor accepts single parameter - instance of `Client`. Repository will
 use it to send messages via `say`.
-#### Instance
-Firstly, lets state, that mode-oriented commands are always object with
-fields `on` and `off` which are functions. Something like that:
+##### Instance
 ```typescript
-interface IModeCommand {
-  on: (channel?: string) => void;
-  off: (channel?: string) => void;
+type TChannelCommand = (channel?: string) => void;
+type TTargetedCommand = (target: string, channel?: string) => void;
+
+interface IModeController {
+  on: TChannelCommand;
+  off: TChannelCommand;
 }
-```
-Description of instance: 
-```typescript
-class ChannelsRepository {
-  // Makes client join channel
-  join: (channel: string) => void;
-  
-  // Make client leave channel
-  leave: (channel: string) => void;
-  
-  // Emotes only mode
-  emoteOnly: IModeCommand;
-  
-  // Followers only mode
-  followersOnly: IModeCommand;
-  
-  // R9K mode
-  r9k: IModeCommand;
-  
-  // Slow mode
-  slowmode: IModeCommand;
-  
-  // Deletes message
-  deleteMessage: (msgId: string, channel?: string) => void;
-  
-  // Play commercial advertisements
-  playCommercial: (durationInSeconds: number, channel?: string) => void;
-  
-  // Clears chat
-  clearChat: (channel?: string) => void;
-  
-  // Host channel
-  host: (targetChannel: string, channel?: string) => void;
-  
-  // Unhost
-  unhost: (channel?: string) => void;
-  
-  // Raid channel
-  raid: (targetChannel: string, channel?: string) => void;
-    
-  // Unraid
-  unraid: (channel?: string) => void;
-  
-  // Leaves a marker with comment
-  marker: (comment: string, channel?: string) => void;
-  
-  // Says a message, looking like an author of its message did something.
-  me: (action: string, channel?: string) => void;
-  
-  // Changes current client color in chat
-  changeColor: (color: string, channel?: string) => void;
+
+interface IChannelsRepository {
+  /**
+   * Joins channel.
+   * @param {string} channel
+   */
+  join(channel: string): void;
+
+  /**
+   * Leaves channel.
+   * @param {string} channel
+   */
+  leave(channel: string): void;
+
+  /**
+   * Emote-only mode.
+   */
+  emoteOnly: IModeController;
+
+  /**
+   * Followers-only mode.
+   */
+  followersOnly: IModeController;
+
+  /**
+   * R9K mode.
+   */
+  r9k: IModeController;
+
+  /**
+   * Slowmode.
+   */
+  slowmode: {
+    on(durationInSeconds: number, channel?: string): void;
+    off: TChannelCommand;
+  };
+
+  /**
+   * Deletes message from channel.
+   * @param {string} messageId
+   * @param {string} channel
+   */
+  deleteMessage(messageId: string, channel?: string): void;
+
+  /**
+   * Plays commercial ads.
+   * @param {number} durationInSeconds
+   * @param {string} channel
+   */
+  playCommercial(durationInSeconds: number, channel?: string): void;
+
+  /**
+   * Clears chat.
+   */
+  clearChat: TChannelCommand;
+
+  /**
+   * Hosts channel.
+   */
+  host: TTargetedCommand;
+
+  /**
+   * Unhosts.
+   */
+  unhost: TChannelCommand;
+
+  /**
+   * Raids channel.
+   */
+  raid: TTargetedCommand;
+
+  /**
+   * Unraids.
+   */
+  unraid: TChannelCommand;
+
+  /**
+   * Leaves a marker with comment.
+   * @param {string} comment
+   * @param {string} channel
+   */
+  marker(comment: string, channel?: string): void;
+
+  /**
+   * Says a message, looking like we did something.
+   * @param {string} action
+   * @param {string} channel
+   */
+  me(action: string, channel?: string): void;
+
+  /**
+   * Changes our chat color.
+   * @param {string} color
+   * @param {string} channel
+   */
+  changeColor(color: string, channel?: string): void;
 }
 ```
 
-### UtilsRepository
+#### UtilsRepository
 This repository is kinda external but is opened on beta period due to
 not all commands are realized at this time. In the future it will be hidden
 via `private` security modifier.
-#### Constructor
-Constructor accepts single parameter - instance of Socket. Repository will
+##### Constructor
+Constructor accepts single parameter - instance of `Socket`. Repository will
 use it to send messages via `send`.
-#### Instance
+##### Instance
 ```typescript
-class UtilsRepository {
-  // Sends raw message to socket connection
-  sendRawMessage: (message: string) => void;
-  
-  // Send an IRC command. Notice, that not commands are executable.
-  // Search for TExecutableCommands for more.
-  sendCommand: <Command extends TExecutableCommands>(
+interface IUtilsRepository {
+  /**
+   * Sends raw message by socket.
+   * @param {string} message
+   */
+  sendRawMessage(message: string): void;
+
+  /**
+   * Sends command by socket.
+   * @param {Command} command
+   * @param {TCommandParams[Command]} params
+   */
+  sendCommand<Command extends TExecutableCommands>(
     command: Command,
     params: TCommandParams[Command],
-  ) => void;
+  ): void;
 }
 ```
 
-### EventsRepository
-This repository is used to handle IRC events, parsing and
+#### EventsRepository
+This repository is used to handle IRC events, parse and
 react on them with bound listeners.
-#### Constructor
-Constructor accepts single parameter - instance of Socket. Repository will
-use it to detect new messages and react.
-#### Instance
+##### Constructor
+Constructor accepts single parameter - instance of `Socket`. Repository will
+use it to detect new messages.
+##### Instance
 ```typescript
-class EventsRepository {
-  // Watch Client.on
-  on: <Command extends TObservableEvents>(
-    command: Command,
-    listener: TCallbacksMap[Command],
-  ) => void;
-  
-  // Watch Client.off
-  off: <Command extends TObservableEvents>(
-    command: Command,
-    listener: TCallbacksMap[Command],
-  ) => void;
+type TListeningManipulator = <Command extends TObservableEvents>(
+  command: Command,
+  listener: TCallbacksMap[Command],
+) => void;
+
+interface IEventsRepository {
+  /**
+   * Adds event listener for command.
+   */
+  on: TListeningManipulator;
+
+  /**
+   * Removes event listener from command.
+   */
+  off: TListeningManipulator;
 }
 ```
-
-## TODO
-- Add commands support. We have to make a lot of typings here. Follow docs
-to know more - https://dev.twitch.tv/docs/irc/tags/:
-
-`MODE` - `event` - someone became moderator
-
-`CLEARCHAT` - `event` - clear chat for someone (someone was banned)
-
-`CLEARMSG` - `event` - admins removed this message
-
-`HOSTTARGET` - `event` - channel started to host this channel
-
-`NOTICE` - `event` - incoming notice
-
-`RECONNECT` - `event` - triggers when server restarts. Server requests a 
-reconnect by client with this action
-
-`ROOMSTATE` - `event` - triggers in moment we join or leave channel. Returns 
-channel current modes list
-
-`USERNOTICE` - `event` - notifies about some notice connected with user. 
-Sub, ban or kinda. Really a lot work with typings here.
-
-`USERSTATE` - returns current client settings (chat color etc.)
-
-`GLOBALUSERSTATE` - event - on successful login returns user info. We can
-use it to detect successful authentication. 
-
-- Fix JOIN event. User can join not channel, but chatroom. We are not
-currently sending info about chatrooms.
-
-- Workaround with PRIVMSG (chat rooms). A lot of changes should come in
-the feature.
-
-- Add message parse support via msg-id for NOTICE
-
-- Add return parameter `self`, which is responsible for detecting if
-event is connected with current client.
-
-- Add warning, that we will not support NAMES command due to it is not 
-working as expected (as said Twitch - 
-https://dev.twitch.tv/docs/irc/membership/#names-twitch-membership).
-Expected behaviour is to get real list of chatters, but there are cases
-we get only mods. Or try to realize?
-
-- Add an error message, if password passed to client is not started with
-"oauth:". Append a reference, where the user can get this token:
-https://twitchapps.com/tmi/ or https://dev.twitch.tv/docs/authentication/
-
-- Add typings for all metas from events
-
-- Try to do something with meta value like "moderator/5". Maybe, parse it like
-`{ name: 'moderator', value: 5 }`
-
-- Add classes description via interface. Make them implement these interfaces
-and copy their links to API documentation. So we can synchronize docs and
-real interfaces.
-
-- Rework `prepareIRCMessage`. It is enough to check if "\n" is in the end of
-string instead of splicing (0, -1). We can make it a bit more unified with this
-check.

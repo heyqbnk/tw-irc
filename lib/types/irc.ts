@@ -1,5 +1,5 @@
 /**
- * List of commands which can be sent to IRC.
+ * List of commands which can be sent to or from IRC.
  */
 enum EIRCCommand {
   CapabilityRequest = 'CAP REQ',
@@ -12,6 +12,9 @@ enum EIRCCommand {
   Pong = 'PONG',
 }
 
+/**
+ * List of states of socket connection.
+ */
 enum ESocketReadyState {
   Connecting = 0,
   Open = 1,
@@ -19,7 +22,4 @@ enum ESocketReadyState {
   Closed = 3,
 }
 
-type TMetaValue = null | string | number | Array<string | number>;
-type TMeta = Record<string, TMetaValue | TMetaValue[] | null>;
-
-export { EIRCCommand, ESocketReadyState, TMeta, TMetaValue };
+export { EIRCCommand, ESocketReadyState };
