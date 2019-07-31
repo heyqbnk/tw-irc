@@ -227,7 +227,7 @@ export interface IEventParams {
 }
 ```
 
-#### Definitions listeners for events
+#### Definitions of listeners for events
 ```typescript
 /**
  * Generic type to describe required callback for event.
@@ -400,7 +400,7 @@ interface IClient {
 ```
 
 #### UsersRepository
-This repository is used to to do actions connected with users.
+This repository is used to do actions connected with users.
 ##### Constructor
 Constructor accepts single parameter - instance of `Client`. Repository will
 use it to send messages via `say`.
