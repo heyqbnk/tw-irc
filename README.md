@@ -1,5 +1,10 @@
 # tw-irc
-## About
+
+> **NOTICE FOR DEVELOPERS**
+>
+> Please, don't forget to check library updates at least once per 2 days. I
+> will keep updating library as often as I can, until stable version - v2.0.0. 
+
 Here is a library that handles connection to Twitch IRC. It allows you to join
 or leave channels, detect and send new messages and other.
 
