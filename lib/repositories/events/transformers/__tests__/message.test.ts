@@ -1,42 +1,62 @@
 import { ESignal, IPrefix } from '../../../../types';
 import { IParsedIRCMessage } from '../../../../utils';
 
-import { leaveTransformer } from '../leave';
+import { messageTransformer } from '../message';
 
 describe('repositories', () => {
   describe('events', () => {
     describe('transformers', () => {
-      describe('leaveTransformer', () => {
-        it('should return object with fields channel, leftUser, isSelf ' +
-          'and raw', () => {
+      describe('messageTransformer', () => {
+        it('should return object with fields channel, message, author, ' +
+          'raw and isSelf', () => {
           const message = getMessage({
             parameters: ['#justintv'],
+            data: 'Hello!',
             prefix: {
-              user: 'shaker'
+              user: 'justin',
             } as IPrefix,
+            meta: {
+              badges: [],
+              emotes: [],
+              tmiSentTs: 1,
+            },
             raw: 'raw',
           });
+          const { tmiSentTs, ...meta } = message.meta;
 
-          expect(leaveTransformer('', message)).toEqual({
+          expect(messageTransformer('', message)).toEqual({
+            ...meta,
             channel: 'justintv',
-            leftUser: 'shaker',
+            message: message.data,
+            author: message.prefix.user,
+            timestamp: tmiSentTs,
             isSelf: false,
             raw: message.raw,
           });
         });
 
-        it('should set isSelf = true if login is equal to leftUser', () => {
+        it('should set isSelf = true if login is equal to author', () => {
           const message = getMessage({
             parameters: ['#justintv'],
+            data: 'Hello!',
             prefix: {
-              user: 'shaker'
+              user: 'justin',
             } as IPrefix,
+            meta: {
+              badges: [],
+              emotes: [],
+              tmiSentTs: 1,
+            },
             raw: 'raw',
           });
+          const { tmiSentTs, ...meta } = message.meta;
 
-          expect(leaveTransformer('shaker', message)).toEqual({
+          expect(messageTransformer(message.prefix.user, message)).toEqual({
+            ...meta,
             channel: 'justintv',
-            leftUser: 'shaker',
+            message: message.data,
+            author: message.prefix.user,
+            timestamp: tmiSentTs,
             isSelf: true,
             raw: message.raw,
           });

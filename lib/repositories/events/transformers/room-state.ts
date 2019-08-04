@@ -1,45 +1,47 @@
+// tslint:disable:max-line-length
 import { ESignal } from '../../../types';
 import {
   TEventTransformersMap,
-  IMessageMeta,
-  IMessageMetaPrepared,
+  IRoomStateMetaParsed,
+  IRoomStateMeta,
 } from '../types';
 
-import { getChannel, getPrefixUser, convertToArray } from '../utils';
+import { getChannel, isDefined } from '../utils';
 
 /**
- * Transformer for PRIVMSG
- * @param login
+ * Transformer for ROOMSTATE
+ * @param {string} _
  * @param {IParsedIRCMessage} message
- * @returns {{meta: TMeta; channel: string; message: string; user: string}}
+ * @returns {{followersOnly?: boolean | number; slow?: number; r9k?: boolean; channel: string; raw: string; subsOnly?: boolean; rituals?: boolean; emoteOnly?: boolean; roomId: number}}
  */
-export const messageTransformer: TEventTransformersMap[ESignal.Message] =
-  (login, message) => {
-    // Remove deprecated data.
+export const roomStateTransformer: TEventTransformersMap[ESignal.RoomState] =
+  (_, message) => {
+    const rawMeta = message.meta as unknown as IRoomStateMetaParsed;
     const {
-      subscriber,
-      mod,
-      turbo,
-      userType,
-      tmiSentTs,
-      ...restParsedMeta
-    } = message.meta as unknown as IMessageMeta;
-    const meta: IMessageMetaPrepared = {
-      ...restParsedMeta,
-      // Dont return null values, in case, an Array must be there. Is a better
-      // practice to return an empty array instead of null here.
-      badges: convertToArray(restParsedMeta.badges),
-      emotes: convertToArray(restParsedMeta.emotes),
-    };
-    const author = getPrefixUser(message);
+      followersOnly,
+      slow,
+      roomId,
+    } = rawMeta;
+    const booleanFields = ['emoteOnly', 'r9k', 'subsOnly', 'rituals'];
+    const meta = booleanFields
+      .reduce<IRoomStateMeta>((acc, item) => {
+        const value = rawMeta[item];
 
-    return {
-      ...meta,
-      channel: getChannel(message),
-      message: message.data,
-      author,
-      raw: message.raw,
-      isSelf: author === login,
-      timestamp: tmiSentTs,
-    };
+        if (isDefined(value)) {
+          acc[item] = Boolean(value);
+        }
+
+        return acc;
+      }, { roomId } as IRoomStateMeta);
+    if (followersOnly !== undefined) {
+      meta.followersOnly = followersOnly > 0
+        ? followersOnly
+        : (followersOnly === 0);
+    }
+
+    if (isDefined(slow)) {
+      meta.slow = slow;
+    }
+
+    return { ...meta, channel: getChannel(message), raw: message.raw };
   };

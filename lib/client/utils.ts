@@ -19,17 +19,3 @@ export function generateRandomAuth(): IAuthInfo {
 export function isPasswordValid(password: string): boolean {
   return password.startsWith('oauth:');
 }
-
-/**
- * Warns, if password is incorrect.
- * @param {string} password
- */
-export function warnInvalidPassword(password: string) {
-  console.warn(
-    `Stated password "${password}" is invalid. ` +
-    'It should start with "oauth:". Your auth data will be ignored. ' +
-    'Please follow these instructions to get more info:\n' +
-    'https://twitchapps.com/tmi/\n' +
-    'https://dev.twitch.tv/docs/authentication/',
-  );
-}

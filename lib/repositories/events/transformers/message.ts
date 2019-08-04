@@ -1,22 +1,47 @@
 import { ESignal } from '../../../types';
-import { TEventTransformersMap } from '../types';
+import {
+  TEventTransformersMap,
+  IMessageMeta,
+  IMessageMetaPrepared,
+} from '../types';
 
-import { getChannel, getPrefixUser } from '../utils';
+import { getChannel, getPrefixUser, convertToArray } from '../utils';
 
 /**
- * Transformer for PART
+ * Transformer for PRIVMSG
  * @param login
  * @param {IParsedIRCMessage} message
- * @returns {{channel: string; user: string}}
+ * @returns {{meta: TMeta; channel: string; message: string; user: string}}
  */
-export const leaveTransformer: TEventTransformersMap[ESignal.Leave] =
+export const messageTransformer: TEventTransformersMap[ESignal.Message] =
   (login, message) => {
-    const leftUser = getPrefixUser(message);
+    // Remove deprecated data.
+    const {
+      subscriber,
+      mod,
+      turbo,
+      userType,
+      tmiSentTs,
+      badges,
+      emotes,
+      ...restParsedMeta
+    } = message.meta as unknown as IMessageMeta;
+    const meta: IMessageMetaPrepared = {
+      ...restParsedMeta,
+      // Dont return null values, in case, an Array must be there. Is a better
+      // practice to return an empty array instead of null here.
+      badges: convertToArray(badges),
+      emotes: convertToArray(emotes),
+    };
+    const author = getPrefixUser(message);
 
     return {
+      ...meta,
       channel: getChannel(message),
-      leftUser,
-      isSelf: leftUser === login,
+      message: message.data,
+      author,
+      timestamp: tmiSentTs,
+      isSelf: author === login,
       raw: message.raw,
     };
   };

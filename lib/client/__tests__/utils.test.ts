@@ -1,6 +1,5 @@
 import {
   generateRandomAuth,
-  warnInvalidPassword,
   isPasswordValid,
 } from '../utils';
 
@@ -20,15 +19,6 @@ describe('client', () => {
         'Otherwise, returns false.', () => {
         expect(isPasswordValid('oauth:jvlkas')).toBe(true);
         expect(isPasswordValid('husky-woof!')).toBe(false);
-      });
-    });
-
-    describe('warnInvalidPassword', () => {
-      it('should call console.warn with warning message', () => {
-        const spy = jest.spyOn(global.console, 'warn');
-        warnInvalidPassword('Leonardo Da Vinci');
-
-        expect(spy).toHaveBeenCalledWith(expect.any(String));
       });
     });
   });

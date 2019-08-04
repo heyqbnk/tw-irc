@@ -1,47 +1,49 @@
 // tslint:disable:max-line-length
 import { ESignal } from '../../../types';
 import {
-  TEventTransformer,
-  IRoomStateMetaParsed,
-  IRoomStateMeta,
+  TEventTransformersMap,
+  IUserNoticeMeta,
+  IUserNoticeMetaPrepared,
 } from '../types';
 
-import { getChannel, isDefined } from '../utils';
+import { convertToArray, getChannel } from '../utils';
 
 /**
- * Transformer for ROOMSTATE
+ * Transformer for USERNOTICE
  * @param {string} _
  * @param {IParsedIRCMessage} message
- * @returns {{followersOnly?: boolean | number; slow?: number; r9k?: boolean; channel: string; raw: string; subsOnly?: boolean; rituals?: boolean; emoteOnly?: boolean; roomId: number}}
+ * @returns {{color: string | null; displayName: string | null; bits?: string; flags: any[] | null; channel: string; messageId: EUserNoticeMessageId; raw: string; login: string; message: string; userId: number; roomId: string; systemMessageId: string; badges: IBadge[]; emotes: IEmote[]; badgeInfo: IBadge | null; id: string; timestamp: number}}
  */
-export const roomStateTransformer: TEventTransformer<ESignal.RoomState> =
+export const userNoticeTransformer: TEventTransformersMap[ESignal.UserNotice] =
   (_, message) => {
-    const rawMeta = message.meta as unknown as IRoomStateMetaParsed;
+    // Remove deprecated data.
     const {
-      followersOnly,
-      slow,
-      roomId,
-    } = rawMeta;
-    const booleanFields = ['emoteOnly', 'r9k', 'subsOnly', 'rituals'];
-    const meta = booleanFields
-      .reduce<IRoomStateMeta>((acc, item) => {
-        const value = rawMeta[item];
+      subscriber,
+      mod,
+      turbo,
+      userType,
+      tmiSentTs,
+      msgId,
+      systemMsg,
+      badges,
+      emotes,
+      ...restParsedMeta
+    } = message.meta as unknown as IUserNoticeMeta;
+    const meta: IUserNoticeMetaPrepared = {
+      ...restParsedMeta,
+      // Dont return null values, in case, an Array must be there. Is a better
+      // practice to return an empty array instead of null here.
+      badges: convertToArray(badges),
+      emotes: convertToArray(emotes),
+    };
 
-        if (isDefined(value)) {
-          acc[item] = Boolean(value);
-        }
-
-        return acc;
-      }, { roomId } as IRoomStateMeta);
-    if (followersOnly !== undefined) {
-      meta.followersOnly = followersOnly > 0
-        ? followersOnly
-        : (followersOnly === 0);
-    }
-
-    if (isDefined(slow)) {
-      meta.slow = slow;
-    }
-
-    return { channel: getChannel(message), ...meta, raw: message.raw };
+    return {
+      ...meta,
+      channel: getChannel(message),
+      message: message.data,
+      messageId: msgId,
+      timestamp: tmiSentTs,
+      systemMessageId: systemMsg,
+      raw: message.raw,
+    };
   };

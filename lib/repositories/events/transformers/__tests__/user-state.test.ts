@@ -1,40 +1,26 @@
 import { ESignal } from '../../../../types';
 import { IParsedIRCMessage } from '../../../../utils';
 
-import { userNoticeTransformer } from '../user-notice';
+import { userStateTransformer } from '../user-state';
 
 describe('repositories', () => {
   describe('events', () => {
     describe('transformers', () => {
-      describe('userNoticeTransformer', () => {
-        it('should return object with fields channel, message, messageId, ' +
-          'timestamp, systemMessageId, raw and other meta', () => {
+      describe('userStateTransformer', () => {
+        it('should return object with fields channel, raw and other meta', () => {
           const message = getMessage({
             parameters: ['#justintv'],
             meta: {
               badges: [],
-              emotes: [],
-              tmiSentTs: 1,
-              systemMsg: 10,
-              msgId: 100,
+              emoteSets: [],
             },
             data: 'Woop',
             raw: 'raw',
           });
-          const {
-            tmiSentTs,
-            msgId,
-            systemMsg,
-            ...meta
-          } = message.meta;
 
-          expect(userNoticeTransformer('', message)).toEqual({
-            ...meta,
+          expect(userStateTransformer('', message)).toEqual({
+            ...message.meta,
             channel: 'justintv',
-            message: message.data,
-            messageId: msgId,
-            timestamp: tmiSentTs,
-            systemMessageId: systemMsg,
             raw: message.raw,
           });
         });

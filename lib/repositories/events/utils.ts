@@ -1,33 +1,65 @@
-import { EIRCCommand } from '../../types';
-import { IEventParams } from './types';
 import { IParsedIRCMessage } from '../../utils';
+import { TPlace } from './types';
 
-function getChannel(message: IParsedIRCMessage) {
+/**
+ * Get channel from parsed message.
+ * @param {IParsedIRCMessage} message
+ * @returns {string}
+ */
+export function getChannel(message: IParsedIRCMessage) {
   return message.parameters[0].slice(1);
 }
 
-function joinChannelTransformer(
-  message: IParsedIRCMessage,
-): IEventParams[EIRCCommand.JoinChannel] {
-  return { channel: getChannel(message), user: message.prefix.user };
+/**
+ * Get user from prefix of parsed message.
+ * @param {IParsedIRCMessage} message
+ * @returns {string}
+ */
+export function getPrefixUser(message: IParsedIRCMessage) {
+  return message.prefix.user;
 }
 
-const leaveChannelTransformer = joinChannelTransformer;
+/**
+ * Gets information about event place. It can be channel, or some chat-room.
+ * @param {IParsedIRCMessage} message
+ * @returns {TPlace}
+ */
+export function getPlaceData(message: IParsedIRCMessage): TPlace {
+  const channel = getChannel(message);
 
-function messageTransformer(
-  message: IParsedIRCMessage,
-): IEventParams[EIRCCommand.Message] {
-  return {
-    channel: getChannel(message),
-    message: message.data,
-    user: message.prefix.user,
-    userInfo: message.meta,
-  };
+  // It means, something is happening in chat room, not in channel
+  if (channel === 'chatrooms') {
+    const [channelId, roomUuid] = message.data.split(':');
+
+    return { channelId, roomUuid };
+  }
+
+  return channel;
 }
 
-export {
-  getChannel,
-  joinChannelTransformer,
-  messageTransformer,
-  leaveChannelTransformer,
+/**
+ * Converts value to array for more comfortable usage.
+ * @param {Value[] | Value | null} value
+ * @returns {Value[]}
+ */
+export const convertToArray = <Value>(
+  value: Value | Value[] | null,
+): Value[] => {
+  if (value === null) {
+    return [] as Value[];
+  }
+  if (!Array.isArray(value)) {
+    return [value];
+  }
+
+  return value;
+};
+
+/**
+ * Checks if value is defined.
+ * @param {Value | undefined} value
+ * @returns {value is Value}
+ */
+export const isDefined = <Value>(value: Value | undefined): value is Value => {
+  return value !== undefined;
 };

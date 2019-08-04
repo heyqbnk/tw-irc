@@ -1,6 +1,10 @@
 import { commandHandlersMap } from './handlers';
 import { Socket } from '../../socket';
-import { IUtilsRepository, TCommandParams, TExecutableCommands } from './types';
+import {
+  IUtilsRepository,
+  IExecuteSignalParamsMap,
+  TExecutableSignals,
+} from './types';
 
 export class UtilsRepository implements IUtilsRepository {
   private readonly socket: Socket;
@@ -9,17 +13,15 @@ export class UtilsRepository implements IUtilsRepository {
     this.socket = socket;
   }
 
-  public sendRawMessage = (message: string) => this.socket.send(message);
-
-  public sendCommand = <Command extends TExecutableCommands>(
-    command: Command,
-    params: TCommandParams[Command],
+  public sendSignal = <Signal extends TExecutableSignals>(
+    command: Signal,
+    params: IExecuteSignalParamsMap[Signal],
   ) => {
     const handleCommand = commandHandlersMap[command];
 
     // Code reliability is guaranteed if there are no TypeScript errors
     // previously.
     // @ts-ignore
-    handleCommand(this.sendRawMessage, params);
+    handleCommand(this.socket.send, params);
   };
 }

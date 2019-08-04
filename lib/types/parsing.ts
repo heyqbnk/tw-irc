@@ -1,7 +1,29 @@
-import { EIRCCommand } from './irc';
+import { ESignal } from './irc';
 
-export type TMetaValue = null | string | number | Array<string | number>;
-export type TMeta = Record<string, TMetaValue | TMetaValue[] | null>;
+export type TMetaValue = string | number | IBadge | IEmote
+  | Array<string | number | IBadge | IEmote>;
+
+export interface IMeta extends Record<string, TMetaValue | null> {
+}
+
+/**
+ * List of existing badges names.
+ */
+type TBadgeName = 'admin' | 'bits' | 'broadcaster' | 'global_mod' | 'moderator'
+  | 'subscriber' | 'staff' | 'turbo';
+
+/**
+ * User's badge information.
+ */
+export interface IBadge {
+  badge: TBadgeName;
+  version: number;
+}
+
+export interface IEmote {
+  emoteId: number;
+  ranges: Array<{ from: number, to: number }>;
+}
 
 export interface IPrefix {
   nickName: string | null;
@@ -11,9 +33,9 @@ export interface IPrefix {
 
 export interface IParsedIRCMessage {
   prefix: IPrefix | null;
-  meta: TMeta | null;
+  meta: IMeta | null;
   parameters: string[] | null;
-  command: EIRCCommand | string;
+  signal: ESignal | string;
   data: string;
   raw: string;
 }

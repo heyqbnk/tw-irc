@@ -1,8 +1,8 @@
 import { Client } from '../client';
 import * as utils from '../utils';
-import { EIRCCommand } from '../../types';
-import { Socket } from '../../socket';
+import { ESignal } from '../../types';
 import { mockWebSocket } from '../../__mocks__/websocket';
+import * as socket from '../../socket';
 
 mockWebSocket();
 
@@ -15,36 +15,35 @@ describe('client', () => {
 
       it('should generate random auth data, if it is not passed', () => {
         const generateSpy = jest.spyOn(utils, 'generateRandomAuth');
-        const client = new Client();
+        new Client();
 
-        expect((client as any).auth).toEqual({
-          login: expect.any(String),
-          password: expect.any(String),
-        });
         expect(generateSpy).toHaveBeenCalledTimes(1);
       });
 
-      it('should warn user that his password is invalid and generate random ' +
-        'auth data, in case, password is invalid', () => {
+      it('should throw an error in case, password is invalid', () => {
         const auth = {
           login: 'husky',
           password: 'woof!',
         };
-        const generateSpy = jest.spyOn(utils, 'generateRandomAuth');
-        const warnSpy = jest.spyOn(utils, 'warnInvalidPassword');
-        const client = new Client({ auth });
+        expect(() => new Client({ auth })).toThrow();
+      });
 
-        expect((client as any).auth).not.toEqual(auth);
-        expect((client as any).auth).toEqual({
-          login: expect.any(String),
-          password: expect.any(String),
-        });
-        expect(generateSpy).toHaveBeenCalledTimes(1);
-        expect(warnSpy).toHaveBeenCalledTimes(1);
+      it('should create socket with passed auth, if it is valid', () => {
+        const auth = {
+          login: 'HUSKY',
+          password: 'oauth:CRUSH',
+        };
+        // @ts-ignore
+        const socketSpy = jest.spyOn(socket, 'Socket');
+        new Client({ auth });
+
+        expect(socketSpy).toHaveBeenCalledWith(expect.objectContaining({
+          auth,
+        }));
       });
     });
 
-    it('"connect" call socket.connect()', () => {
+    it('"connect" calls socket.connect()', () => {
       const client = new Client();
       const spy = jest.spyOn(client.socket, 'connect');
       client.connect();
@@ -52,7 +51,7 @@ describe('client', () => {
       expect(spy).toHaveBeenCalledWith();
     });
 
-    it('"disconnect" call socket.disconnect()', () => {
+    it('"disconnect" calls socket.disconnect()', () => {
       const client = new Client();
       const spy = jest.spyOn(client.socket, 'disconnect');
       client.disconnect();
@@ -60,27 +59,27 @@ describe('client', () => {
       expect(spy).toHaveBeenCalledWith();
     });
 
-    it('"on" method calls events.on', () => {
+    it('"on" calls events.on()', () => {
       const client = new Client();
       const spy = jest.spyOn((client as any).events, 'on');
-      const command = EIRCCommand.JoinChannel;
+      const command = ESignal.Join;
       const listener = jest.fn();
       client.on(command, listener);
 
       expect(spy).toHaveBeenCalledWith(command, listener);
     });
 
-    it('"off" method calls events.off', () => {
+    it('"off" calls events.off()', () => {
       const client = new Client();
       const spy = jest.spyOn((client as any).events, 'off');
-      const command = EIRCCommand.JoinChannel;
+      const command = ESignal.Join;
       const listener = jest.fn();
       client.off(command, listener);
 
       expect(spy).toHaveBeenCalledWith(command, listener);
     });
 
-    it('"bindChannel" sets boundChannel to stated value', () => {
+    it('"bindChannel" sets boundChannel to passed value', () => {
       const client = new Client();
       const channel = 'some channel';
       client.bindChannel(channel);
@@ -88,61 +87,35 @@ describe('client', () => {
       expect((client as any).boundChannel).toBe(channel);
     });
 
-    it('"say" method throws an error, if a channel argument was not passed and ' +
-      'channel was not bound to client. Otherwise, calls utils.sendCommand ' +
-      'with parameters: EIRCommand.Message and { channel, message }', () => {
-      const client = new Client();
-      expect(() => client.say('Hey!')).toThrow();
+    describe('say', () => {
+      it('should throw an error, if a channel argument was not passed and ' +
+        'channel was not bound to client.', () => {
+        const client = new Client();
+        expect(() => client.say('Hey!')).toThrow();
+      });
 
-      const channel = 'woof!';
-      const saidChannel = 'horror';
-      const message = 'Woop-woop!';
-      client.bindChannel(channel);
-      const spy = jest.spyOn(client.utils, 'sendCommand')
-        .mockImplementation(() => {
+      it('should call utils.sendSignal() if channel was passed, or was ' +
+        'bound to client', () => {
+        const client = new Client();
+        const channel = 'woof!';
+        const saidChannel = 'horror';
+        const message = 'Woop-woop!';
+        const spy = jest.spyOn(client.utils, 'sendSignal')
+          .mockImplementation(jest.fn);
+
+        client.say(message, saidChannel);
+        expect(spy).toHaveBeenCalledWith(ESignal.Message, {
+          channel: saidChannel,
+          message,
         });
 
-      client.say(message);
-      expect(spy).toHaveBeenCalledWith(EIRCCommand.Message, {
-        channel,
-        message,
-      });
-
-      client.say(message, saidChannel);
-      expect(spy).toHaveBeenCalledWith(EIRCCommand.Message, {
-        channel: saidChannel,
-        message,
-      });
-    });
-
-    it('when socket is opened, request capabilities: "membership", "tags", ' +
-      '"commands". Sends authentication data', () => {
-      const auth = {
-        login: 'husky',
-        password: 'oauth:white',
-      };
-      const client = new Client({ auth });
-      client.connect();
-      const sendSpy = jest.spyOn(client.utils, 'sendRawMessage')
-        .mockImplementation(() => {
+        client.bindChannel(channel);
+        client.say(message);
+        expect(spy).toHaveBeenCalledWith(ESignal.Message, {
+          channel,
+          message,
         });
-      const openEvent = new Event('open');
-      emitEvent(client.socket, openEvent);
-
-      const caps = ['membership', 'tags', 'commands'];
-      caps.forEach(cap => {
-        expect(sendSpy)
-          .toHaveBeenCalledWith(`${EIRCCommand.CapabilityRequest} :twitch.tv/${cap}`);
       });
-
-      expect(sendSpy)
-        .toHaveBeenCalledWith(`${EIRCCommand.Password} ${auth.password}`);
-      expect(sendSpy)
-        .toHaveBeenCalledWith(`${EIRCCommand.Nickname} ${auth.login}`);
     });
   });
 });
-
-function emitEvent(socket: Socket, event: Event) {
-  (socket as any).socket.dispatchEvent(event);
-}

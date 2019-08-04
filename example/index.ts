@@ -1,7 +1,13 @@
-import { Client, EIRCCommand, ESocketReadyState } from '../lib';
-import { prepareIRCMessage, parseIRCMessage } from '../lib/utils';
+import { Client, ESignal } from '../lib';
+import { ESocketReadyState } from '../lib/socket/types';
+// import { prepareIRCMessage, parseIRCMessage } from '../lib/utils';
 
-const client = new Client();
+const client = new Client({
+  auth: {
+    login: 'streamerspacebot',
+    password: 'oauth:3xpybrljzh009ihj0og6r8j8wizlad',
+  },
+});
 
 function printReadyState() {
   const state = client.socket.getReadyState();
@@ -24,47 +30,13 @@ client.socket.on('open', async () => {
   printReadyState();
 
   // Join channel
-  client.channels.join('qbnk');
-  client.bindChannel('qbnk');
+  const channel = 'xakoh';
+  client.channels.join(channel);
+  client.bindChannel(channel);
 
-  client.say('Hello!');
-
-  // Watch for incoming messages
-  client.on(EIRCCommand.Message, ({ channel, message, user, userInfo }) => {
-    console.warn(userInfo, `#${channel} ${user}: ${message}`);
-  });
-
-  // Watch for somebody joining channel
-  client.on(EIRCCommand.JoinChannel, ({ channel, user }) => {
-    console.warn(`#${channel}: ${user} joined channel`);
-  });
-
-  // Watch for somebody's leave
-  client.on(EIRCCommand.LeaveChannel, ({ channel, user }) => {
-    console.warn(`#${channel}: ${user} left channel`);
-  });
-
-  client.socket.on('message', event => {
-    // Convert raw socket message to array of messages. We need this action
-    // because commands can be concatenated in one message and doing this,
-    // we just detect them.
-    const messages = prepareIRCMessage(event.data);
-
-    // Here we get an array of objects with params:
-    // prefix: {
-    //    nickName: string | null;
-    //    user: string | null;
-    //    host: string;
-    // } | null;
-    // meta: Record<string, string | string[] | number | number[] | null> | null;
-    // parameters: string[] | null;
-    // command: EIRCCommand | string;
-    // data: string;
-    // raw: string;
-    const parsedMessages = messages.map(parseIRCMessage);
-
-    // You can react however you want after all of messages are parsed.
-    console.log('Customly parsed messages:', parsedMessages);
+  // Watch every signal.
+  Object.values(ESignal).forEach(signal => {
+    client.on(signal, params => console.log(`${signal} ::`, params));
   });
 });
 
@@ -75,8 +47,7 @@ client.socket.on('close', () => {
 client.connect();
 
 if ((module as any).hot) {
-  (module as any).hot.accept();
+  (module as any).hot.accept(() => {
+    window.location.reload();
+  });
 }
-
-// @ts-ignore
-window.irc = client;

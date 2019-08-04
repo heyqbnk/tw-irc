@@ -1,13 +1,13 @@
-import { TCommandHandlersMap } from './types';
-import { EIRCCommand } from '../../types';
+import { TExecuteSignalHandler, TExecuteSignalHandlersMap } from './types';
+import { ESignal } from '../../types';
 
 interface ICompileParams {
-  command: EIRCCommand;
+  command: ESignal;
   channel?: string;
   message?: string;
 }
 
-const { JoinChannel, LeaveChannel, Message } = EIRCCommand;
+const { Join, Leave, Message } = ESignal;
 
 /**
  * Compiles command to message.
@@ -28,13 +28,36 @@ function compile(params: ICompileParams) {
   return partials.join(' ');
 }
 
-const commandHandlersMap: TCommandHandlersMap = {
-  [JoinChannel]: (send, { channel }) =>
-    send(compile({ command: JoinChannel, channel })),
-  [LeaveChannel]: (send, { channel }) =>
-    send(compile({ command: LeaveChannel, channel })),
-  [Message]: (send, { message, channel }) =>
-    send(`${Message} #${channel} :${message}`),
+/**
+ * Handler for JOIN
+ * @param {(message: string) => void} send
+ * @param params
+ */
+const joinHandler: TExecuteSignalHandler<ESignal.Join> =
+  (send, { channel }) => send(compile({ command: Join, channel }));
+
+/**
+ * Handler for PART
+ * @param {(message: string) => void} send
+ * @param params
+ */
+const leaveHandler: TExecuteSignalHandler<ESignal.Leave> =
+  (send, { channel }) => send(compile({ command: Leave, channel }));
+
+/**
+ * Handler for PRIVMSG
+ * @param {(message: string) => void} send
+ * @param {IExecuteSignalParams[ESignal.Message]} params
+ */
+const messageHandler: TExecuteSignalHandler<ESignal.Message> =
+  (send, { message, channel }) => {
+    send(`${Message} #${channel} :${message}`);
+  };
+
+const commandHandlersMap: TExecuteSignalHandlersMap = {
+  [Join]: joinHandler,
+  [Leave]: leaveHandler,
+  [Message]: messageHandler,
 };
 
 export { commandHandlersMap, compile };

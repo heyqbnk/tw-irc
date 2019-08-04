@@ -1,11 +1,11 @@
-import { TExecutableCommands } from './executable';
-import { TCommandParams } from './params';
+import { TExecutableSignals } from './executable';
+import { IExecuteSignalParamsMap } from './params';
 
-type TCommandHandler<Command extends TExecutableCommands> = (
+export type TExecuteSignalHandler<Command extends TExecutableSignals> = (
   send: (message: string) => void,
-  params: TCommandParams[Command],
+  params: IExecuteSignalParamsMap[Command],
 ) => void;
 
-export type TCommandHandlersMap = {
-  [Command in TExecutableCommands]: TCommandHandler<Command>;
+export type TExecuteSignalHandlersMap = {
+  [Signal in TExecutableSignals]: TExecuteSignalHandler<Signal>;
 };

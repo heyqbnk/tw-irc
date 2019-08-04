@@ -4,7 +4,7 @@ import { ChannelsRepository } from '../repositories/channels';
 import { UsersRepository } from '../repositories/users';
 import { UtilsRepository } from '../repositories/utils';
 
-import { TObservableEvents, TCallbacksMap } from '../repositories/events';
+import { TObservableEvents, TSignalListenersMap } from '../repositories/events';
 
 interface IAuthInfo {
   login: string;
@@ -18,7 +18,7 @@ interface IClientConstructorProps {
 
 type TListeningManipulator = <Command extends TObservableEvents>(
   command: Command,
-  listener: TCallbacksMap[Command],
+  listener: TSignalListenersMap[Command],
 ) => void;
 
 /**

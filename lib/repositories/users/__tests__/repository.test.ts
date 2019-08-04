@@ -82,7 +82,7 @@ const mkClient = () => {
     channel: 'kongo!',
     say: jest.fn(),
     utils: {
-      sendCommand: jest.fn(),
+      sendSignal: jest.fn(),
     },
   };
 };

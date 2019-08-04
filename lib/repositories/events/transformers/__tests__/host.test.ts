@@ -1,25 +1,39 @@
 import { ESignal } from '../../../../types';
 import { IParsedIRCMessage } from '../../../../utils';
 
-import { globalUserStateTransformer } from '../global-user-state';
+import { hostTransformer } from '../host';
 
 describe('repositories', () => {
   describe('events', () => {
     describe('transformers', () => {
-      describe('globalUserStateTransformer', () => {
-        it('should return object with fields raw and parsed meta', () => {
+      describe('hostTransformer', () => {
+        it('should return object with fields hostingChannel, viewersCount, ' +
+          'raw if targetChannel is "-"', () => {
           const message = getMessage({
             parameters: ['#justintv'],
-            data: 'Hello!',
-            meta: {
-              badges: [],
-              emoteSets: [],
-            },
+            data: '- 133',
             raw: 'raw',
           });
 
-          expect(globalUserStateTransformer('', message)).toEqual({
-            ...message.meta,
+          expect(hostTransformer('', message)).toEqual({
+            hostingChannel: 'justintv',
+            viewersCount: 133,
+            raw: message.raw,
+          });
+        });
+
+        it('should return object with fields hostingChannel, viewersCount, ' +
+          'raw, targetChannel if targetChannel is NOT "-"', () => {
+          const message = getMessage({
+            parameters: ['#justintv'],
+            data: 'cooler 133',
+            raw: 'raw',
+          });
+
+          expect(hostTransformer('', message)).toEqual({
+            hostingChannel: 'justintv',
+            targetChannel: 'cooler',
+            viewersCount: 133,
             raw: message.raw,
           });
         });

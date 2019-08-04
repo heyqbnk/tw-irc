@@ -4,7 +4,7 @@ import {
   TChannelCommand,
   TTargetedCommand,
 } from './types';
-import { EIRCCommand } from '../../types';
+import { ESignal } from '../../types';
 
 class ChannelsRepository implements IChannelsRepository {
   private readonly client: Client;
@@ -34,11 +34,11 @@ class ChannelsRepository implements IChannelsRepository {
   });
 
   public join = (channel: string) => {
-    this.client.utils.sendCommand(EIRCCommand.JoinChannel, { channel });
+    this.client.utils.sendSignal(ESignal.Join, { channel });
   };
 
   public leave = (channel: string) => {
-    this.client.utils.sendCommand(EIRCCommand.LeaveChannel, { channel });
+    this.client.utils.sendSignal(ESignal.Leave, { channel });
   };
 
   public emoteOnly = this.channelMode('/emoteonly');

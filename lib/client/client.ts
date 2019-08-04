@@ -5,25 +5,16 @@ import {
   TListeningManipulator,
 } from './types';
 import { Socket } from '../socket';
-import { EIRCCommand } from '../types';
+import { ESignal } from '../types';
 
 import { UtilsRepository } from '../repositories/utils';
 import { ChannelsRepository } from '../repositories/channels';
 import { UsersRepository } from '../repositories/users';
 import { EventsRepository } from '../repositories/events';
 
-import {
-  generateRandomAuth,
-  isPasswordValid,
-  warnInvalidPassword,
-} from './utils';
+import { generateRandomAuth, isPasswordValid } from './utils';
 
 class Client implements IClient {
-  /**
-   * Authentication data.
-   */
-  private readonly auth: IAuthInfo;
-
   /**
    * Bound channel for client.
    */
@@ -40,51 +31,32 @@ class Client implements IClient {
   public utils: UtilsRepository;
 
   public constructor(props: IClientConstructorProps = {}) {
-    const { secure, auth } = props;
+    const { secure, auth: initialAuth } = props;
+    let auth: IAuthInfo;
 
-    if (auth) {
-      if (isPasswordValid(auth.password)) {
-        this.auth = auth;
-      } else {
-        warnInvalidPassword(auth.password);
-
-        // If auth data is invalid, generate some random authentication data
-        this.auth = generateRandomAuth();
+    if (initialAuth) {
+      if (!isPasswordValid(initialAuth.password)) {
+        throw new Error(
+          `Stated password "${initialAuth.password}" is invalid. ` +
+          'It should start with "oauth:". Your auth data will be ignored. ' +
+          'Please follow these instructions to get more info:\n' +
+          'https://twitchapps.com/tmi/\n' +
+          'https://dev.twitch.tv/docs/authentication/',
+        );
       }
+      auth = initialAuth;
     } else {
-      this.auth = generateRandomAuth();
+      auth = generateRandomAuth();
     }
 
-    const socket = new Socket({ secure });
-    socket.on('open', this.onWebSocketOpen);
+    const socket = new Socket({ secure, auth });
+
+    this.socket = socket;
 
     // Initialize repositories.
     this.utils = new UtilsRepository(socket);
-    this.events = new EventsRepository(socket);
-
-    this.socket = socket;
+    this.events = new EventsRepository(socket, auth.login);
   }
-
-  /**
-   * Listener which requests required capabilities and authenticates user.
-   */
-  private onWebSocketOpen = () => {
-    // tslint:disable-next-line:no-this-assignment
-    const {
-      auth: { password, login },
-      utils: { sendRawMessage },
-    } = this;
-
-    // Request all capabilities.
-    ['membership', 'tags', 'commands'].forEach(cap => {
-      sendRawMessage(`${EIRCCommand.CapabilityRequest} :twitch.tv/${cap}`);
-    });
-
-    // Standard authentication:
-    // https://dev.twitch.tv/docs/irc/guide/
-    sendRawMessage(`${EIRCCommand.Password} ${password}`);
-    sendRawMessage(`${EIRCCommand.Nickname} ${login}`);
-  };
 
   public connect = () => this.socket.connect();
 
@@ -104,7 +76,7 @@ class Client implements IClient {
     if (!channel && !this.boundChannel) {
       throw new Error('Cannot send message due to channel is not stated');
     }
-    this.utils.sendCommand(EIRCCommand.Message, {
+    this.utils.sendSignal(ESignal.Message, {
       channel: channel || this.boundChannel,
       message,
     });

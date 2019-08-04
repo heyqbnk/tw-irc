@@ -1,39 +1,79 @@
 import { Socket } from '../socket';
-import { EIRCCommand, ESocketReadyState } from '../../types';
+import { ESignal } from '../../types';
+import { ESocketReadyState } from '../types';
 import { mockWebSocket, MockWebSocket } from '../../__mocks__/websocket';
+import { IAuthData } from '../types';
 
 mockWebSocket();
 
 describe('socket', () => {
-  it('"connect" creates WebSocket instance and closes previous connection', () => {
-    const socket = new Socket({ secure: false });
+  describe('constructor', () => {
+    it('should remember authentication data with fields "login" and "password", ' +
+      'taken from passed "auth". Each of this values should be lower-cased', () => {
+      const auth = {
+        login: 'Astronaunt',
+        password: 'NUTS',
+      };
+      const socket = mkSocket({ auth });
 
-    expect(getSocket(socket)).toBe(undefined);
-    socket.connect();
-    const ws = getSocket(socket);
-    const closeSpy = jest.spyOn(ws, 'close');
-    // Previously we have overridden WebSocket with MockWebSocket, so check it
-    expect(ws).toBeInstanceOf(MockWebSocket);
-
-    socket.connect();
-    expect(closeSpy).toBeCalledWith();
+      expect((socket as any).auth).toEqual({
+        login: auth.login.toLowerCase(),
+        password: auth.password.toLowerCase(),
+      });
+    });
   });
 
-  it('"disconnect" closes connection if it exists. Otherwise ignore', () => {
-    const socket = new Socket({ secure: false });
+  describe('connect', () => {
+    it('should create WebSocket instance with path ' +
+      '"ws://irc-ws.chat.twitch.tv:80" if "secure" was "false", or ' +
+      '"wss://irc-ws.chat.twitch.tv:443" if "secure" was "true"', () => {
+      let socket = mkSocket({ secure: false });
+      socket.connect();
 
-    socket.disconnect();
+      let ws = getSocket(socket);
+      // Previously we have overridden WebSocket with MockWebSocket, so check it
+      expect(ws).toBeInstanceOf(MockWebSocket);
+      expect(MockWebSocket)
+        .toHaveBeenLastCalledWith('ws://irc-ws.chat.twitch.tv:80');
 
-    socket.connect();
-    const ws = getSocket(socket);
-    const closeSpy = jest.spyOn(ws, 'close');
-    socket.disconnect();
+      socket = mkSocket({ secure: true });
+      socket.connect();
+      expect(MockWebSocket)
+        .toHaveBeenLastCalledWith('wss://irc-ws.chat.twitch.tv:443');
+    });
 
-    expect(closeSpy).toBeCalledWith();
+    it('should close previous connection', () => {
+      const socket = mkSocket();
+      let ws = getSocket(socket);
+
+      expect(ws).toBe(undefined);
+      socket.connect();
+      ws = getSocket(socket);
+      const spy = jest.spyOn(ws, 'close');
+
+      expect(ws).toBeInstanceOf(MockWebSocket);
+
+      socket.connect();
+      expect(spy).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('disconnect', () => {
+    it('should close previous connection', () => {
+      const socket = mkSocket();
+
+      socket.disconnect();
+      socket.connect();
+      const ws = getSocket(socket);
+      const spy = jest.spyOn(ws, 'close');
+
+      socket.disconnect();
+      expect(spy).toHaveBeenCalledWith();
+    });
   });
 
   it('"on" adds event listener in case websocket exists. Otherwise, ignore', () => {
-    const socket = new Socket({ secure: false });
+    const socket = mkSocket();
     const listener = jest.fn();
     socket.on('message', () => {
     });
@@ -46,7 +86,7 @@ describe('socket', () => {
   });
 
   it('"off" should unbind existing listener. Otherwise ignore', () => {
-    const socket = new Socket({ secure: false });
+    const socket = mkSocket();
     const spliceSpy = jest.spyOn((socket as any).listeners, 'splice');
     const listener = jest.fn();
 
@@ -61,7 +101,7 @@ describe('socket', () => {
 
   it('"getReadyState" returns socket connection ready state if socket ' +
     'exists. Otherwise returns ESocketReadyState.Closed', () => {
-    const socket = new Socket({ secure: false });
+    const socket = mkSocket();
     expect(socket.getReadyState()).toBe(ESocketReadyState.Closed);
 
     socket.connect();
@@ -69,7 +109,7 @@ describe('socket', () => {
   });
 
   it('"send" sends a message via socket', () => {
-    const socket = new Socket({ secure: true });
+    const socket = mkSocket();
     expect(() => socket.send('123')).toThrow();
 
     socket.connect();
@@ -80,34 +120,99 @@ describe('socket', () => {
   });
 
   it('"bindEvents" throws an error if socket is not initialized', () => {
-    const socket = new Socket({ secure: true });
+    const socket = mkSocket();
 
     expect(() => (socket as any).bindEvents()).toThrow();
   });
 
-  it('when message is received, in case it is PING command, respond with ' +
-    'PONG. Otherwise, ignore', () => {
-    const socket = new Socket({ secure: true });
-    socket.connect();
+  describe('onMessage', () => {
+    it('should respond with PONG if signal was PING', () => {
+      const socket = mkSocket();
+      socket.connect();
 
-    const sendSpy = jest.spyOn(socket, 'send')
-      .mockImplementationOnce(jest.fn);
-    const messageEvent = new MessageEvent('message', {
-      data: 'PING :tmi.twitch.tv',
+      const sendSpy = jest.spyOn(socket, 'send')
+        .mockImplementationOnce(jest.fn);
+      const messageEvent = new MessageEvent('message', {
+        data: 'PING :tmi.twitch.tv',
+      });
+      emitEvent(socket, messageEvent);
+
+      expect(sendSpy).toHaveBeenCalledWith(ESignal.Pong);
     });
-    emitEvent(socket, messageEvent);
 
-    expect(sendSpy).toHaveBeenCalledWith(EIRCCommand.Pong);
-    sendSpy.mockReset();
+    it('should reconnect socket if signal was RECONNECT', () => {
+      const socket = mkSocket();
+      const disconnectSpy = jest.spyOn(socket, 'disconnect');
+      const connectSpy = jest.spyOn(socket, 'connect');
+      socket.connect();
 
-    const anotherMessage = new MessageEvent('message', {
-      data: ':qbnk!qbnk@qbnk JOIN #qbnk',
+      const messageEvent = new MessageEvent('message', {
+        data: 'RECONNECT :tmi.twitch.tv',
+      });
+      emitEvent(socket, messageEvent);
+
+      expect(disconnectSpy).toHaveBeenCalledWith();
+      expect(connectSpy).toHaveBeenCalledWith();
     });
-    emitEvent(socket, anotherMessage);
 
-    expect(sendSpy).not.toHaveBeenCalled();
+    it('should ignore message if signal is not RECONNECT and PING', () => {
+      const socket = mkSocket();
+      const disconnectSpy = jest.spyOn(socket, 'disconnect');
+      const connectSpy = jest.spyOn(socket, 'connect');
+      const sendSpy = jest.spyOn(socket, 'send')
+        .mockImplementationOnce(jest.fn);
+      socket.connect();
+
+      const event = new MessageEvent('message', {
+        data: ':qbnk!qbnk@qbnk JOIN #qbnk',
+      });
+      emitEvent(socket, event);
+
+      expect(disconnectSpy).not.toHaveBeenCalled();
+      expect(connectSpy).toHaveBeenCalledTimes(1);
+      expect(sendSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onOpen', () => {
+    it('should request capabilities: twitch.tv/membership, twitch.tv/tags and ' +
+      'twitch.tv/commands on connection open', () => {
+      const socket = mkSocket();
+      const sendSpy = jest.spyOn(socket, 'send');
+      socket.connect();
+
+      const event = new Event('open');
+      emitEvent(socket, event);
+
+      expect(sendSpy).toHaveBeenCalledWith(`CAP REQ :twitch.tv/membership`);
+      expect(sendSpy).toHaveBeenCalledWith(`CAP REQ :twitch.tv/tags`);
+      expect(sendSpy).toHaveBeenCalledWith(`CAP REQ :twitch.tv/commands`);
+    });
+
+    it('should send "PASS {password}" and "NICK {login}" on connection ' +
+      'open', () => {
+      const auth = { login: 'husky', password: 'champagne' };
+      const socket = mkSocket({ auth });
+      const sendSpy = jest.spyOn(socket, 'send');
+      socket.connect();
+
+      const event = new Event('open');
+      emitEvent(socket, event);
+
+      expect(sendSpy).toHaveBeenCalledWith(`PASS ${auth.password}`);
+      expect(sendSpy).toHaveBeenCalledWith(`NICK ${auth.login}`);
+    });
   });
 });
+
+function mkSocket(props: { auth?: IAuthData, secure?: boolean } = {}): Socket {
+  const {
+    auth = { login: '', password: '' },
+    secure = false,
+  } = props;
+
+  return new Socket({ auth, secure });
+}
 
 function getSocket(socket: Socket): WebSocket | undefined {
   return (socket as any).socket;

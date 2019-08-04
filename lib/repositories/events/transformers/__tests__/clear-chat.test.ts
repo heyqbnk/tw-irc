@@ -1,30 +1,63 @@
-/// <reference types="jest" />
 import { ESignal } from '../../../../types';
-import { transformers } from '..';
 import { IParsedIRCMessage } from '../../../../utils';
 
 import { clearChatTransformer } from '../clear-chat';
-// import { clearMessageTransformer } from '../clear-message';
-// import { globalUserStateTransformer } from '../global-user-state';
 
 describe('repositories', () => {
   describe('events', () => {
     describe('transformers', () => {
       describe('clearChatTransformer', () => {
-        // it('should return object with fields channel, bannedUser, ' +
-        //   'banDuration, bannedUserId, roomId, timestamp, raw', () => {
-        //   const message = getMessage({
-        //     parameters: ['#justin'],
-        //     data: 'bull'
-        //   });
-        //   expect(clearChatTransformer()).toEqual({
-        //     channel: 'justin',
-        //     bannedUser: 'bull',
-        //   });
-        // });
+        it('should return object with fields channel, bannedUser, ' +
+          'banDuration, bannedUserId, roomId, timestamp, raw if there is ' +
+          'targetUserId on meta', () => {
+          const message = getMessage({
+            parameters: ['#justintv'],
+            data: 'bull',
+            meta: {
+              roomId: 1,
+              tmiSentTs: 10,
+              targetUserId: 100,
+            },
+            raw: 'raw',
+          });
+
+          expect(clearChatTransformer('', message)).toEqual({
+            channel: 'justintv',
+            bannedUser: 'bull',
+            banDuration: Number.POSITIVE_INFINITY,
+            bannedUserId: 100,
+            roomId: 1,
+            timestamp: 10,
+            raw: 'raw',
+          });
+        });
+
+        it('should take banDuration if it exists in meta', () => {
+          const message = getMessage({
+            parameters: ['#justintv'],
+            data: 'bull',
+            meta: {
+              roomId: 1,
+              tmiSentTs: 10,
+              targetUserId: 100,
+              banDuration: 1000
+            },
+            raw: 'raw',
+          });
+
+          expect(clearChatTransformer('', message)).toEqual({
+            channel: 'justintv',
+            bannedUser: 'bull',
+            banDuration: 1000,
+            bannedUserId: 100,
+            roomId: 1,
+            timestamp: 10,
+            raw: 'raw',
+          });
+        });
 
         it('should return object with fields channel, roomId, timestamp, ' +
-          'raw if there is not targetUserId on meta', () => {
+          'raw if there is NO targetUserId on meta', () => {
           const message = getMessage({
             parameters: ['#justintv'],
             meta: {

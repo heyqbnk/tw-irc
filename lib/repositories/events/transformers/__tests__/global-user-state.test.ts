@@ -1,29 +1,25 @@
 import { ESignal } from '../../../../types';
 import { IParsedIRCMessage } from '../../../../utils';
 
-import { clearMessageTransformer } from '../clear-message';
+import { globalUserStateTransformer } from '../global-user-state';
 
 describe('repositories', () => {
   describe('events', () => {
     describe('transformers', () => {
-      describe('clearMessageTransformer', () => {
-        it('should return object with fields channel, targetMessageId, ' +
-          'message, messageAuthor, raw', () => {
+      describe('globalUserStateTransformer', () => {
+        it('should return object with fields raw and parsed meta', () => {
           const message = getMessage({
             parameters: ['#justintv'],
             data: 'Hello!',
             meta: {
-              targetMsgId: 1,
-              login: 'somelogin',
+              badges: [],
+              emoteSets: [],
             },
             raw: 'raw',
           });
 
-          expect(clearMessageTransformer('', message)).toEqual({
-            channel: 'justintv',
-            targetMessageId: message.meta.targetMsgId,
-            message: message.data,
-            messageAuthor: message.meta.login,
+          expect(globalUserStateTransformer('', message)).toEqual({
+            ...message.meta,
             raw: message.raw,
           });
         });

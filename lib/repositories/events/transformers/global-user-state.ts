@@ -2,19 +2,20 @@
 import { ESignal } from '../../../types';
 import {
   TEventTransformersMap,
-  IUserStateMeta,
-  IUserStateMetaPrepared,
+  IGlobalUserStateMeta,
+  IGlobalUserStateMetaPrepared,
 } from '../types';
 
-import { convertToArray, getPlaceData } from '../utils';
+import { convertToArray } from '../utils';
 
 /**
- * Transformer for USERSTATE
+ * Transformer for GLOBALUSERSTATE
  * @param {string} _
  * @param {IParsedIRCMessage} message
  * @returns {{color: string | null; displayName: string | null; bits?: string; flags: any[] | null; channel: string; messageId: EUserNoticeMessageId; raw: string; login: string; message: string; userId: number; roomId: string; systemMessageId: string; badges: IBadge[]; emotes: IEmote[]; badgeInfo: IBadge | null; id: string; timestamp: number}}
  */
-export const userStateTransformer: TEventTransformersMap[ESignal.UserState] =
+export const globalUserStateTransformer:
+  TEventTransformersMap[ESignal.GlobalUserState] =
   (_, message) => {
     // Remove deprecated data.
     const {
@@ -25,8 +26,8 @@ export const userStateTransformer: TEventTransformersMap[ESignal.UserState] =
       badges,
       emoteSets,
       ...restParsedMeta
-    } = message.meta as unknown as IUserStateMeta;
-    const meta: IUserStateMetaPrepared = {
+    } = message.meta as unknown as IGlobalUserStateMeta;
+    const meta: IGlobalUserStateMetaPrepared = {
       ...restParsedMeta,
       // Dont return null values, in case, an Array must be there. Is a better
       // practice to return an empty array instead of null here.
@@ -36,7 +37,6 @@ export const userStateTransformer: TEventTransformersMap[ESignal.UserState] =
 
     return {
       ...meta,
-      channel: getPlaceData(message),
       raw: message.raw,
     };
   };

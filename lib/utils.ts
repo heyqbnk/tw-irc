@@ -1,4 +1,11 @@
-import { IPrefix, TMeta, TMetaValue, IParsedIRCMessage } from './types';
+import {
+  IPrefix,
+  IMeta,
+  TMetaValue,
+  IEmote,
+  IBadge,
+  IParsedIRCMessage,
+} from './types';
 
 /**
  * Converts text to camel case.
@@ -12,37 +19,63 @@ function toCamelCase(text: string): string {
 }
 
 /**
- * Strictly returns string or number.
+ * Parses emote.
+ * @param {string} value
+ * @returns {IEmote}
+ */
+function parseEmote(value: string): IEmote {
+  const [emoteId, emotesRaw] = value.split(':');
+  const ranges = emotesRaw
+    .split(',')
+    .map(item => {
+      const [from, to] = item.split('-').map(Number);
+
+      return { from, to };
+    });
+
+  return { emoteId: parseInt(emoteId, 10), ranges };
+}
+
+/**
+ * Strictly returns safe pool of values.
  * @param {string} value
  * @returns {string | number}
  */
-function parseSafeMetaValue(value: string): string | number {
+function parseMetaValue(value: string): TMetaValue {
   const asNumber = parseInt(value, 10);
 
+  // Is number
   if (asNumber.toString() === value) {
     return asNumber;
   }
 
-  return value;
-}
+  // Is emote
+  if (value.includes(':')) {
+    if (value.includes('/')) {
+      const values = value.split('/');
 
-/**
- * Parses meta value.
- * @param {string} value
- * @returns {TMetaValue}
- */
-function parseMetaValue(value: string): TMetaValue {
-  if (value.length === 0) {
-    return null;
+      return values.map(parseEmote);
+    }
+
+    return parseEmote(value);
   }
 
   // Is array
   if (value.includes(',')) {
     // Recursively parse values of array
-    return value.split(',').map(parseSafeMetaValue);
+    return value
+      .split(',')
+      .map(parseMetaValue) as Array<string | number | IBadge | IEmote>;
   }
 
-  return parseSafeMetaValue(value);
+  // Is badge
+  if (value.includes('/')) {
+    const [badge, val] = value.split('/');
+
+    return { badge, version: parseInt(val, 10) } as IBadge;
+  }
+
+  return value;
 }
 
 /**
@@ -50,7 +83,7 @@ function parseMetaValue(value: string): TMetaValue {
  * @returns {TMeta | null}
  * @param metaRaw
  */
-function parseMeta(metaRaw: string): TMeta | null {
+function parseMeta(metaRaw: string): IMeta | null {
   const meta = metaRaw[0] === '@' ? metaRaw.slice(1) : metaRaw;
   if (meta === '') {
     return null;
@@ -59,11 +92,13 @@ function parseMeta(metaRaw: string): TMeta | null {
   return meta.split(';').reduce(
     (acc, entry) => {
       const [key, value] = entry.split('=');
-      acc[toCamelCase(key)] = parseMetaValue(value);
+      acc[toCamelCase(key)] = value.length === 0
+        ? null
+        : parseMetaValue(value);
 
       return acc;
     },
-    {} as TMeta,
+    {} as IMeta,
   );
 }
 
@@ -100,14 +135,17 @@ function prepareIRCMessage(message: string): string[] {
 
 /**
  * Parses IRC message.
- * @param {string} message
  * @returns {any}
+ * @param messageRaw
  */
-function parseIRCMessage(message: string): IParsedIRCMessage {
+function parseIRCMessage(messageRaw: string): IParsedIRCMessage {
+  const message = messageRaw.startsWith(':')
+    ? ' ' + messageRaw
+    : messageRaw;
   const [metaRaw, payloadRaw, ...dataRaw] = message
-    .split(':')
+    .split(' :')
     .map(item => item.trim());
-  const data = dataRaw.join(':') || null;
+  const data = dataRaw.join(' :') || null;
 
   // Message: PING :tmi.twitch.tv
   if (metaRaw.match(/^[A-Z]+/)) {
@@ -115,22 +153,22 @@ function parseIRCMessage(message: string): IParsedIRCMessage {
       prefix: parsePrefix(payloadRaw),
       meta: null,
       parameters: null,
-      command: metaRaw,
+      signal: metaRaw,
       data,
       raw: message,
     };
   }
 
-  const [prefixRaw, command, ...parameters] = payloadRaw.split(' ');
+  const [prefixRaw, signal, ...parameters] = payloadRaw.split(' ');
   const prefix = parsePrefix(prefixRaw);
 
   return {
     prefix,
     meta: parseMeta(metaRaw),
     parameters,
-    command,
+    signal,
     data,
-    raw: message,
+    raw: messageRaw,
   };
 }
 
@@ -140,7 +178,7 @@ export {
   IParsedIRCMessage,
   toCamelCase,
   parseMeta,
-  parseMetaValue,
+  parseEmote,
   parsePrefix,
-  parseSafeMetaValue,
+  parseMetaValue,
 };

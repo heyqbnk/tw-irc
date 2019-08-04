@@ -1,44 +1,42 @@
-export class MockWebSocket {
-  public CONNECTING = 0;
-  public OPEN = 1;
-  public CLOSING = 2;
-  public CLOSED = 3;
-  public readyState = this.CONNECTING;
-  public path: string;
-  private listeners = [];
+// tslint:disable:no-invalid-this
+export const MockWebSocket = jest.fn(function(path: string) {
+  this.CONNECTING = 0;
+  this.OPEN = 1;
+  this.CLOSING = 2;
+  this.CLOSED = 3;
+  this.readyState = this.CONNECTING;
+  this.path = path;
 
-  public constructor(path: string) {
-    this.path = path;
-  }
+  const listeners = [];
 
-  public addEventListener = jest.fn((name, listener) => {
-    this.listeners.push({ name, listener });
+  this.addEventListener = jest.fn((name, listener) => {
+    listeners.push({ name, listener });
   });
 
-  public removeEventListener = jest.fn((name, listener) => {
-    const index = this.listeners.findIndex(item => {
+  this.removeEventListener = jest.fn((name, listener) => {
+    const index = listeners.findIndex(item => {
       return item.name === name && item.listener === listener;
     });
 
     if (index !== -1) {
-      this.listeners.splice(index, 1);
+      listeners.splice(index, 1);
     }
   });
 
-  public close = jest.fn(() => {
+  this.close = jest.fn(() => {
     this.readyState = WebSocket.CLOSED;
   });
 
-  public send = jest.fn();
+  this.send = jest.fn();
 
-  public dispatchEvent = jest.fn((event: Event) => {
-    this.listeners.forEach(item => {
+  this.dispatchEvent = jest.fn((event: Event) => {
+    listeners.forEach(item => {
       if (item.name === event.type) {
         item.listener(event);
       }
     });
   });
-}
+});
 
 // @ts-ignore
 export const mockWebSocket = () => global.WebSocket = MockWebSocket;

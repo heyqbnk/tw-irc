@@ -1,13 +1,13 @@
 import { ESignal, IPrefix } from '../../../../types';
 import { IParsedIRCMessage } from '../../../../utils';
 
-import { joinTransformer } from '../join';
+import { leaveTransformer } from '../leave';
 
 describe('repositories', () => {
   describe('events', () => {
     describe('transformers', () => {
-      describe('joinTransformer', () => {
-        it('should return object with fields channel, joinedUser, isSelf ' +
+      describe('leaveTransformer', () => {
+        it('should return object with fields channel, leftUser, isSelf ' +
           'and raw', () => {
           const message = getMessage({
             parameters: ['#justintv'],
@@ -17,15 +17,15 @@ describe('repositories', () => {
             raw: 'raw',
           });
 
-          expect(joinTransformer('', message)).toEqual({
+          expect(leaveTransformer('', message)).toEqual({
             channel: 'justintv',
-            joinedUser: 'shaker',
+            leftUser: 'shaker',
             isSelf: false,
             raw: message.raw,
           });
         });
 
-        it('should set isSelf = true if login is equal to joinedUser', () => {
+        it('should set isSelf = true if login is equal to leftUser', () => {
           const message = getMessage({
             parameters: ['#justintv'],
             prefix: {
@@ -34,9 +34,9 @@ describe('repositories', () => {
             raw: 'raw',
           });
 
-          expect(joinTransformer('shaker', message)).toEqual({
+          expect(leaveTransformer('shaker', message)).toEqual({
             channel: 'justintv',
-            joinedUser: 'shaker',
+            leftUser: 'shaker',
             isSelf: true,
             raw: message.raw,
           });

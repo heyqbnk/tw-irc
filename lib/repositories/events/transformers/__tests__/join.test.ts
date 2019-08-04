@@ -1,39 +1,43 @@
-import { ESignal } from '../../../../types';
+import { ESignal, IPrefix } from '../../../../types';
 import { IParsedIRCMessage } from '../../../../utils';
 
-import { hostTransformer } from '../host';
+import { joinTransformer } from '../join';
 
 describe('repositories', () => {
   describe('events', () => {
     describe('transformers', () => {
-      describe('hostTransformer', () => {
-        it('should return object with fields hostingChannel, viewersCount, ' +
-          'raw if targetChannel is "-"', () => {
+      describe('joinTransformer', () => {
+        it('should return object with fields channel, joinedUser, isSelf ' +
+          'and raw', () => {
           const message = getMessage({
             parameters: ['#justintv'],
-            data: '- 133',
+            prefix: {
+              user: 'shaker'
+            } as IPrefix,
             raw: 'raw',
           });
 
-          expect(hostTransformer('', message)).toEqual({
-            hostingChannel: 'justintv',
-            viewersCount: 133,
+          expect(joinTransformer('', message)).toEqual({
+            channel: 'justintv',
+            joinedUser: 'shaker',
+            isSelf: false,
             raw: message.raw,
           });
         });
 
-        it('should return object with fields hostingChannel, viewersCount, ' +
-          'raw, targetChannel if targetChannel is NOT "-"', () => {
+        it('should set isSelf = true if login is equal to joinedUser', () => {
           const message = getMessage({
             parameters: ['#justintv'],
-            data: 'cooler 133',
+            prefix: {
+              user: 'shaker'
+            } as IPrefix,
             raw: 'raw',
           });
 
-          expect(hostTransformer('', message)).toEqual({
-            hostingChannel: 'justintv',
-            targetChannel: 'cooler',
-            viewersCount: 133,
+          expect(joinTransformer('shaker', message)).toEqual({
+            channel: 'justintv',
+            joinedUser: 'shaker',
+            isSelf: true,
             raw: message.raw,
           });
         });

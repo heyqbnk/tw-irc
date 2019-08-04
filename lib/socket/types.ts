@@ -1,14 +1,23 @@
-import { ESocketReadyState } from '../types';
+interface IAuthData {
+  login: string;
+  password: string;
+}
 
 interface ISocketConstructorProps {
   /**
    * Sets security connection security level.
    */
-  secure: boolean;
+  secure?: boolean;
+
+  /**
+   * Authentication data,
+   */
+  auth: IAuthData;
 }
 
 interface IListener {
   eventName: keyof WebSocketEventMap;
+
   listener(ev: Event): void;
 }
 
@@ -16,6 +25,16 @@ type TListeningManipulator = <K extends keyof WebSocketEventMap>(
   eventName: K,
   listener: (ev: WebSocketEventMap[K]) => any,
 ) => void;
+
+/**
+ * List of states of socket connection.
+ */
+enum ESocketReadyState {
+  Connecting = 0,
+  Open = 1,
+  Closing = 2,
+  Closed = 3,
+}
 
 /**
  * Implementation for Socket class.
@@ -54,4 +73,11 @@ interface ISocket {
   send(message: string): void;
 }
 
-export { ISocketConstructorProps, IListener, ISocket, TListeningManipulator };
+export {
+  ISocketConstructorProps,
+  IListener,
+  ISocket,
+  TListeningManipulator,
+  ESocketReadyState,
+  IAuthData,
+};

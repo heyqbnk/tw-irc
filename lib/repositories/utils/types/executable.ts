@@ -1,8 +1,8 @@
-import { EIRCCommand } from '../../../types';
+import { ESignal } from '../../../types';
 
 /**
- * List of executable commands.
+ * List of executable singals.
  */
-export type TExecutableCommands = EIRCCommand.JoinChannel
-  | EIRCCommand.LeaveChannel
-  | EIRCCommand.Message;
+export type TExecutableSignals = ESignal.Join
+  | ESignal.Leave
+  | ESignal.Message;

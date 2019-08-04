@@ -1,25 +1,36 @@
 import {
+  ESocketReadyState,
+  IAuthData,
   IListener,
   ISocket,
   ISocketConstructorProps,
   TListeningManipulator,
 } from './types';
-import { EIRCCommand, ESocketReadyState } from '../types';
+import { ESignal } from '../types';
 import { parseIRCMessage, prepareIRCMessage } from '../utils';
 
-class Socket implements ISocket {
+export class Socket implements ISocket {
   private readonly path: string;
   private readonly listeners: IListener[] = [];
   private socket: WebSocket;
+  private readonly auth: IAuthData;
 
   public constructor(props: ISocketConstructorProps) {
-    const { secure } = props;
+    const {
+      secure,
+      auth: { login, password },
+    } = props;
 
+    this.auth = {
+      login: login.toLowerCase(),
+      password: password.toLowerCase(),
+    };
     this.path = secure
       ? 'wss://irc-ws.chat.twitch.tv:443'
       : 'ws://irc-ws.chat.twitch.tv:80';
 
     this.on('message', this.onMessage);
+    this.on('open', this.onOpen);
   }
 
   /**
@@ -48,13 +59,34 @@ class Socket implements ISocket {
     const prepared = prepareIRCMessage(message);
 
     prepared.forEach(msg => {
-      const parsed = parseIRCMessage(msg);
+      const { signal } = parseIRCMessage(msg);
 
-      // If command was PING, respond with PONG
-      if (parsed.command === EIRCCommand.Ping) {
-        this.send(EIRCCommand.Pong);
+      if (signal === ESignal.Ping) {
+        // If command was PING, respond with PONG.
+        this.send(ESignal.Pong);
+      } else if (signal === ESignal.Reconnect) {
+        // If command was RECONNECT, just reconnect.
+        this.disconnect();
+        this.connect();
       }
     });
+  };
+
+  /**
+   * Handler, responsible for requesting capabilities
+   */
+  private onOpen = () => {
+    const { password, login } = this.auth;
+
+    // Request all capabilities.
+    ['membership', 'tags', 'commands'].forEach(cap => {
+      this.send(`${ESignal.CapabilityRequest} :twitch.tv/${cap}`);
+    });
+
+    // Standard authentication:
+    // https://dev.twitch.tv/docs/irc/guide/
+    this.send(ESignal.Password + ' ' + password);
+    this.send(ESignal.Nickname + ' ' + login);
   };
 
   public connect = () => {
@@ -104,5 +136,3 @@ class Socket implements ISocket {
     this.socket.send(message);
   };
 }
-
-export { Socket };

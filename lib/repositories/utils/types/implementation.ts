@@ -1,23 +1,17 @@
-import { TExecutableCommands } from './executable';
-import { TCommandParams } from './params';
+import { TExecutableSignals } from './executable';
+import { IExecuteSignalParamsMap } from './params';
 
 /**
  * Implementation for UtilsRepository class.
  */
 export interface IUtilsRepository {
   /**
-   * Sends raw message by socket.
-   * @param {string} message
+   * Sends signals by socket.
+   * @param {Signal} command
+   * @param {IExecuteSignalParams[Signal]} params
    */
-  sendRawMessage(message: string): void;
-
-  /**
-   * Sends command by socket.
-   * @param {Command} command
-   * @param {TCommandParams[Command]} params
-   */
-  sendCommand<Command extends TExecutableCommands>(
-    command: Command,
-    params: TCommandParams[Command],
+  sendSignal<Signal extends TExecutableSignals>(
+    command: Signal,
+    params: IExecuteSignalParamsMap[Signal],
   ): void;
 }

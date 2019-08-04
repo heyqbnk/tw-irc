@@ -1,20 +1,20 @@
-import { EIRCCommand } from '../../../types';
-import { TExecutableCommands } from './executable';
+import { ESignal } from '../../../types';
+import { TExecutableSignals } from './executable';
 
-interface ICommandDefaultParams {
+interface ISignalExecuteDefaultParams {
   channel: string;
 }
 
-interface IMessageCommandParams extends ICommandDefaultParams {
+interface IMessageSignalExecuteParams extends ISignalExecuteDefaultParams {
   message: string;
 }
 
-interface ICommandParams {
-  [EIRCCommand.JoinChannel]: ICommandDefaultParams;
-  [EIRCCommand.LeaveChannel]: ICommandDefaultParams;
-  [EIRCCommand.Message]: IMessageCommandParams;
+interface IExecuteSignalParams {
+  [ESignal.Join]: ISignalExecuteDefaultParams;
+  [ESignal.Leave]: ISignalExecuteDefaultParams;
+  [ESignal.Message]: IMessageSignalExecuteParams;
 }
 
-export type TCommandParams = {
-  [Command in TExecutableCommands]: ICommandParams[Command];
+export type IExecuteSignalParamsMap = {
+  [Signal in TExecutableSignals]: IExecuteSignalParams[Signal];
 };

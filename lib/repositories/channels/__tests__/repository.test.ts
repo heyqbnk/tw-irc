@@ -13,7 +13,7 @@ describe('repositories', () => {
 
         repo.join(channel);
 
-        expect(client.utils.sendCommand)
+        expect(client.utils.sendSignal)
           .toHaveBeenCalledWith('JOIN', { channel });
       });
 
@@ -24,7 +24,7 @@ describe('repositories', () => {
 
         repo.leave(channel);
 
-        expect(client.utils.sendCommand)
+        expect(client.utils.sendSignal)
           .toHaveBeenCalledWith('PART', { channel });
       });
 
@@ -166,7 +166,7 @@ const mkClient = () => {
   return {
     say: jest.fn(),
     utils: {
-      sendCommand: jest.fn(),
+      sendSignal: jest.fn(),
     },
   };
 };

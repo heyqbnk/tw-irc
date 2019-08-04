@@ -1,63 +1,24 @@
-import { ESignal, IPrefix } from '../../../../types';
+import { ESignal } from '../../../../types';
 import { IParsedIRCMessage } from '../../../../utils';
 
-import { messageTransformer } from '../message';
+import { noticeTransformer } from '../notice';
 
 describe('repositories', () => {
   describe('events', () => {
     describe('transformers', () => {
-      describe('messageTransformer', () => {
-        it('should return object with fields channel, message, author, ' +
-          'raw and isSelft', () => {
+      describe('noticeTransformer', () => {
+        it('should return object with fields messageId, channel and raw', () => {
           const message = getMessage({
             parameters: ['#justintv'],
-            data: 'Hello!',
-            prefix: {
-              user: 'justin',
-            } as IPrefix,
             meta: {
-              badges: [],
-              emotes: [],
-              tmiSentTs: 1,
+              msgId: 1,
             },
             raw: 'raw',
           });
-          const { tmiSentTs, ...meta } = message.meta;
 
-          expect(messageTransformer('', message)).toEqual({
-            ...meta,
+          expect(noticeTransformer('', message)).toEqual({
             channel: 'justintv',
-            message: message.data,
-            author: message.prefix.user,
-            timestamp: tmiSentTs,
-            isSelf: false,
-            raw: message.raw,
-          });
-        });
-
-        it('should set isSelf = true if login is equal to author', () => {
-          const message = getMessage({
-            parameters: ['#justintv'],
-            data: 'Hello!',
-            prefix: {
-              user: 'justin',
-            } as IPrefix,
-            meta: {
-              badges: [],
-              emotes: [],
-              tmiSentTs: 1,
-            },
-            raw: 'raw',
-          });
-          const { tmiSentTs, ...meta } = message.meta;
-
-          expect(messageTransformer(message.prefix.user, message)).toEqual({
-            ...meta,
-            channel: 'justintv',
-            message: message.data,
-            author: message.prefix.user,
-            timestamp: tmiSentTs,
-            isSelf: true,
+            messageId: message.meta.msgId,
             raw: message.raw,
           });
         });

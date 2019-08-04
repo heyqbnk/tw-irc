@@ -1,25 +1,22 @@
 /**
  * List of commands which can be sent to or from IRC.
  */
-enum EIRCCommand {
+export enum ESignal {
   CapabilityRequest = 'CAP REQ',
-  JoinChannel = 'JOIN',
-  LeaveChannel = 'PART',
+  ClearChat = 'CLEARCHAT',
+  ClearMessage = 'CLEARMSG',
+  GlobalUserState = 'GLOBALUSERSTATE',
+  Host = 'HOSTTARGET',
+  Join = 'JOIN',
+  Leave = 'PART',
   Message = 'PRIVMSG',
   Nickname = 'NICK',
+  Notice = 'NOTICE',
   Password = 'PASS',
   Ping = 'PING',
   Pong = 'PONG',
+  Reconnect = 'RECONNECT',
+  RoomState = 'ROOMSTATE',
+  UserNotice = 'USERNOTICE',
+  UserState = 'USERSTATE',
 }
-
-/**
- * List of states of socket connection.
- */
-enum ESocketReadyState {
-  Connecting = 0,
-  Open = 1,
-  Closing = 2,
-  Closed = 3,
-}
-
-export { EIRCCommand, ESocketReadyState };

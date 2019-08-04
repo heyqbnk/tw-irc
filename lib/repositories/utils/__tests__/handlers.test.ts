@@ -1,6 +1,6 @@
 /// <reference types="jest"/>
 import { compile, commandHandlersMap } from '../handlers';
-import { EIRCCommand } from '../../../types';
+import { ESignal } from '../../../types';
 
 describe('repositories', () => {
   describe('utils', () => {
@@ -8,7 +8,7 @@ describe('repositories', () => {
       describe('compile', () => {
         it('Should return text, with channel, message and command separated ' +
           'with spaces', () => {
-          const command = EIRCCommand.JoinChannel;
+          const command = ESignal.Join;
           const channel = 'summit1g';
           const message = 'some message from user';
 
@@ -17,7 +17,7 @@ describe('repositories', () => {
         });
 
         it('Should contain a channel name with hashtag', () => {
-          const command = EIRCCommand.JoinChannel;
+          const command = ESignal.Join;
           const channel = 'summit1g';
           const message = 'some message from user';
 
@@ -31,7 +31,7 @@ describe('repositories', () => {
         });
 
         it('Should not contain a channel if it is not stated', () => {
-          const command = EIRCCommand.JoinChannel;
+          const command = ESignal.Join;
           const message = 'some message from user';
 
           expect(compile({ command, message })).toBe(`${command} ${message}`);
@@ -39,35 +39,35 @@ describe('repositories', () => {
       });
 
       describe('commandHandlersMap', () => {
-        it('For command JoinChannel should call "send" method, with ' +
-          'text: EIRCCommand.JoinChannel + " #" + channel', () => {
-          const handler = commandHandlersMap[EIRCCommand.JoinChannel];
+        it('For command Join should call "send" method, with ' +
+          'text: ESignal.Join + " #" + channel', () => {
+          const handler = commandHandlersMap[ESignal.Join];
           const send = jest.fn(message => message);
           const channel = 'summit1g';
 
-          expect(handler(send, { channel }))
-            .toBe(`${EIRCCommand.JoinChannel} #${channel}`);
+          handler(send, { channel });
+          expect(send).toBeCalledWith(`${ESignal.Join} #${channel}`);
         });
 
-        it('For command LeaveChannel should call "send" method, with ' +
-          'text: EIRCCommand.LeaveChannel + " #" + channel', () => {
-          const handler = commandHandlersMap[EIRCCommand.LeaveChannel];
+        it('For command Leave should call "send" method, with ' +
+          'text: ESignal.Leave + " #" + channel', () => {
+          const handler = commandHandlersMap[ESignal.Leave];
           const send = jest.fn(message => message);
           const channel = 'summit1g';
 
-          expect(handler(send, { channel }))
-            .toBe(`${EIRCCommand.LeaveChannel} #${channel}`);
+          handler(send, { channel });
+          expect(send).toBeCalledWith(`${ESignal.Leave} #${channel}`);
         });
 
         it('For command Message should call "send" method, with ' +
-          'text: EIRCCommand.Message + " #" + channel + " :" + message', () => {
-          const handler = commandHandlersMap[EIRCCommand.Message];
+          'text: ESignal.Message + " #" + channel + " :" + message', () => {
+          const handler = commandHandlersMap[ESignal.Message];
           const send = jest.fn(message => message);
           const channel = 'summit1g';
           const message = 'Hello Alice!';
 
-          expect(handler(send, { channel, message }))
-            .toBe(`${EIRCCommand.Message} #${channel} :${message}`);
+          handler(send, { channel, message });
+          expect(send).toBeCalledWith(`${ESignal.Message} #${channel} :${message}`);
         });
       });
     });

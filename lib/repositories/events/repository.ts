@@ -1,17 +1,19 @@
 import {
-  ICommandListener,
+  ISignalListener,
   IEventsRepository,
   TListeningManipulator,
 } from './types';
-import { parseIRCMessage } from '../../utils';
+import { parseIRCMessage, prepareIRCMessage } from '../../utils';
 import { transformers } from './transformers';
 import { Socket } from '../../socket';
 
 export class EventsRepository implements IEventsRepository {
-  private readonly commandListeners: ICommandListener[] = [];
+  private readonly commandListeners: ISignalListener[] = [];
   private readonly socket: Socket;
+  private readonly login: string;
 
-  public constructor(socket: Socket) {
+  public constructor(socket: Socket, login: string) {
+    this.login = login.toLowerCase();
     this.socket = socket;
     this.socket.on('message', this.onMessage);
   }
@@ -21,27 +23,31 @@ export class EventsRepository implements IEventsRepository {
    * @param {MessageEvent} event
    */
   private onMessage = (event: MessageEvent) => {
-    const parsedMessage = parseIRCMessage(event.data as string);
+    const preparedMessages = prepareIRCMessage(event.data as string);
 
-    // Check if there are bound listeners to this command.
-    this.commandListeners.forEach(item => {
-      if (item.command === parsedMessage.command) {
-        // We have to pre-transform parameters to format, applicable
-        // by specific listener.
-        const transform = transformers[parsedMessage.command];
+    preparedMessages.forEach(message => {
+      const parsedMessage = parseIRCMessage(message);
 
-        item.listener(transform(parsedMessage));
-      }
+      // Check if there are bound listeners to this command.
+      this.commandListeners.forEach(item => {
+        if (item.event === parsedMessage.signal) {
+          // We have to pre-transform parameters to format, applicable
+          // by specific listener.
+          const transform = transformers[parsedMessage.signal];
+
+          item.listener(transform(this.login, parsedMessage));
+        }
+      });
     });
   };
 
-  public on: TListeningManipulator = (command, listener) => {
-    this.commandListeners.push({ command, listener });
+  public on: TListeningManipulator = (event, listener) => {
+    this.commandListeners.push({ event, listener });
   };
 
   public off: TListeningManipulator = (command, listener) => {
     const foundIndex = this.commandListeners.findIndex(
-      item => item.listener === listener && item.command === command,
+      item => item.listener === listener && item.event === command,
     );
 
     if (foundIndex > -1) {
