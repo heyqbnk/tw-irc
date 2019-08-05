@@ -15,7 +15,7 @@ import { Client } from 'tw-irc';
 const client = new Client();
 
 // Create client with authentication. It will allow us to send messages.
-const aithenticatedClient = new Client({
+const authenticatedClient = new Client({
   auth: {
     login: '...', // your login, lower-cased
     password: '...', // get it here: https://twitchapps.com/tmi/
