@@ -1,10 +1,18 @@
-import { INoticeMeta, TEventTransformersMap } from '../types';
+import { IEventParams, INoticeMeta, TEventTransformersMap } from '../types';
 import { ESignal } from '../../../types';
 import { getChannel } from '../utils';
 
 export const noticeTransformer: TEventTransformersMap[ESignal.Notice] =
-  (_, message) => ({
-    messageId: (message.meta as unknown as INoticeMeta).msgId,
-    channel: getChannel(message),
-    raw: message.raw,
-  });
+  (_, message) => {
+    const result = {
+      channel: getChannel(message),
+      message: message.data,
+      raw: message.raw,
+    } as IEventParams[ESignal.Notice];
+
+    if (message.meta) {
+      result.messageId = (message.meta as unknown as INoticeMeta).msgId;
+    }
+
+    return result;
+  };

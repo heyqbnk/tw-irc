@@ -69,7 +69,8 @@ interface IJoinEventParams extends IDefaultRoomEventParams {
 
 // NOTICE
 interface INoticeEventParams extends IDefaultChannelEventParams {
-  messageId: EUserNoticeMessageId;
+  messageId?: EUserNoticeMessageId;
+  message: string;
 }
 
 // PART

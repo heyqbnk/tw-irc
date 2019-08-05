@@ -1,12 +1,12 @@
-import { TObservableEvents } from './observable';
+import { TObservableSignals } from './observable';
 import { TSignalListenersMap, TSignalListener } from './listeners';
 
 export interface ISignalListener {
-  event: TObservableEvents;
+  event: TObservableSignals;
   listener: TSignalListener<any>;
 }
 
-export type TListeningManipulator = <Command extends TObservableEvents>(
+export type TListeningManipulator = <Command extends TObservableSignals>(
   event: Command,
   listener: TSignalListenersMap[Command],
 ) => void;

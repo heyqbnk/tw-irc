@@ -1,4 +1,4 @@
-import { TObservableEvents } from './observable';
+import { TObservableSignals } from './observable';
 import { IEventParams } from './params';
 
 /**
@@ -11,5 +11,5 @@ export type TSignalListener<Params> = (params: Params) => void;
  * With this type it is easy to create new callbacks description.
  */
 export type TSignalListenersMap = {
-  [Signal in TObservableEvents]: TSignalListener<IEventParams[Signal]>;
+  [Signal in TObservableSignals]: TSignalListener<IEventParams[Signal]>;
 };

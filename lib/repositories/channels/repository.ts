@@ -1,6 +1,6 @@
 import { Client } from '../../client';
 import {
-  IChannelsRepository,
+  IChannelsRepository, IModeController,
   TChannelCommand,
   TTargetedCommand,
 } from './types';
@@ -28,9 +28,9 @@ class ChannelsRepository implements IChannelsRepository {
    * @returns {{off: (channel?: string) => void;
    * on: (channel?: string) => void}}
    */
-  private channelMode = (mode: string) => ({
-    on: (channel?: string) => this.client.say(mode, channel),
-    off: (channel?: string) => this.client.say(`${mode}off`, channel),
+  private channelMode = (mode: string): IModeController => ({
+    enable: (channel?: string) => this.client.say(mode, channel),
+    disable: (channel?: string) => this.client.say(`${mode}off`, channel),
   });
 
   public join = (channel: string) => {
@@ -43,14 +43,26 @@ class ChannelsRepository implements IChannelsRepository {
 
   public emoteOnly = this.channelMode('/emoteonly');
 
-  public followersOnly = this.channelMode('/followers');
+  public followersOnly = {
+    ...this.channelMode('/followers'),
+    enable: (durationInMinutes?: number, channel?: string) => {
+      const message = '/followers'
+        + (durationInMinutes ? ` ${durationInMinutes}` : '');
+
+      this.client.say(message, channel);
+    },
+  };
 
   public r9k = this.channelMode('/r9kbeta');
 
   public slowmode = {
     ...this.channelMode('/slow'),
-    on: (durationInSeconds: number, channel?: string) =>
-      this.client.say(`/slow ${durationInSeconds}`, channel),
+    enable: (durationInSeconds?: number, channel?: string) => {
+      const message = '/slow'
+        + (durationInSeconds ? ` ${durationInSeconds}` : '');
+
+      this.client.say(message, channel);
+    },
   };
 
   public deleteMessage = (msgId: string, channel?: string) => {
@@ -75,8 +87,9 @@ class ChannelsRepository implements IChannelsRepository {
 
   public unraid = this.channelCommand('/unraid');
 
-  public marker = (comment: string, channel?: string) => {
-    this.client.say(`/marker ${comment}`, channel);
+  public marker = (comment?: string, channel?: string) => {
+    const message = '/marker' + (comment ? ` ${comment}` : '');
+    this.client.say(message, channel);
   };
 
   public me = (action: string, channel?: string) => {

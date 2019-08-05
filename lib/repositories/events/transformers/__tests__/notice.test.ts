@@ -7,9 +7,26 @@ describe('repositories', () => {
   describe('events', () => {
     describe('transformers', () => {
       describe('noticeTransformer', () => {
-        it('should return object with fields messageId, channel and raw', () => {
+        it('should return object with fields channel, message and raw', () => {
           const message = getMessage({
             parameters: ['#justintv'],
+            data: 'Hello!',
+            meta: null,
+            raw: 'raw',
+          });
+
+          expect(noticeTransformer('', message)).toEqual({
+            channel: 'justintv',
+            message: message.data,
+            raw: message.raw,
+          });
+        });
+
+        it('should return object with fields channel, messageId, ' +
+          'message and raw in case meta.msgId exists', () => {
+          const message = getMessage({
+            parameters: ['#justintv'],
+            data: 'Hello!',
             meta: {
               msgId: 1,
             },
@@ -18,6 +35,7 @@ describe('repositories', () => {
 
           expect(noticeTransformer('', message)).toEqual({
             channel: 'justintv',
+            message: message.data,
             messageId: message.meta.msgId,
             raw: message.raw,
           });

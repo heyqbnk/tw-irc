@@ -1,15 +1,15 @@
-type TChannelCommand = (channel?: string) => void;
-type TTargetedCommand = (target: string, channel?: string) => void;
+export type TChannelCommand = (channel?: string) => void;
+export type TTargetedCommand = (target: string, channel?: string) => void;
 
-interface IModeController {
-  on: TChannelCommand;
-  off: TChannelCommand;
+export interface IModeController {
+  enable: TChannelCommand;
+  disable: TChannelCommand;
 }
 
 /**
  * Implementation class for ChannelsRepository class.
  */
-interface IChannelsRepository {
+export interface IChannelsRepository {
   /**
    * Joins channel.
    * @param {string} channel
@@ -30,7 +30,10 @@ interface IChannelsRepository {
   /**
    * Followers-only mode.
    */
-  followersOnly: IModeController;
+  followersOnly: {
+    enable(durationInMinutes: number, channel?: string): void;
+    disable: TChannelCommand;
+  };
 
   /**
    * R9K mode.
@@ -41,8 +44,8 @@ interface IChannelsRepository {
    * Slowmode.
    */
   slowmode: {
-    on(durationInSeconds: number, channel?: string): void;
-    off: TChannelCommand;
+    enable(durationInSeconds: number, channel?: string): void;
+    disable: TChannelCommand;
   };
 
   /**
@@ -105,5 +108,3 @@ interface IChannelsRepository {
    */
   changeColor(color: string, channel?: string): void;
 }
-
-export { TChannelCommand, TTargetedCommand, IChannelsRepository };

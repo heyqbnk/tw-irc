@@ -1,13 +1,8 @@
 import { Client, ESignal } from '../lib';
 import { ESocketReadyState } from '../lib/socket/types';
-// import { prepareIRCMessage, parseIRCMessage } from '../lib/utils';
+import { TObservableSignals } from '../lib/repositories/events/types';
 
-const client = new Client({
-  auth: {
-    login: '...',
-    password: '...',
-  },
-});
+const client = new Client();
 
 function printReadyState() {
   const state = client.socket.getReadyState();
@@ -25,6 +20,12 @@ function printReadyState() {
 
 printReadyState();
 
+const observableSignals: TObservableSignals[] = [
+  ESignal.ClearChat, ESignal.ClearMessage, ESignal.GlobalUserState,
+  ESignal.Host, ESignal.Join, ESignal.Leave, ESignal.Message, ESignal.Notice,
+  ESignal.Reconnect, ESignal.RoomState, ESignal.UserNotice, ESignal.UserState,
+];
+
 // Wait for connection to be opened
 client.socket.on('open', async () => {
   printReadyState();
@@ -32,10 +33,10 @@ client.socket.on('open', async () => {
   // Join channel
   const channel = 'xakoh';
   client.channels.join(channel);
-  client.bindChannel(channel);
+  client.assignChannel(channel);
 
-  // Watch every signal.
-  Object.values(ESignal).forEach(signal => {
+  // Watch each observable signal.
+  observableSignals.forEach(signal => {
     client.on(signal, params => console.log(`${signal} ::`, params));
   });
 });

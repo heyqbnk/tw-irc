@@ -3,7 +3,7 @@ import { ESignal } from '../../../types';
 /**
  * List of observable events.
  */
-export type TObservableEvents =
+export type TObservableSignals =
   ESignal.ClearChat
   | ESignal.ClearMessage
   | ESignal.GlobalUserState

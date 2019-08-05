@@ -28,22 +28,84 @@ describe('repositories', () => {
           .toHaveBeenCalledWith('PART', { channel });
       });
 
-      it('"slowmode" field must be object with fields "on" and "off". "off" ' +
-        'sends a message "/slowoff", "on" sends "/slow {secs}"', () => {
-        const client = mkClient();
-        const channel = 'channel';
-        const repo = new ChannelsRepository(client as any);
-        const duration = 300;
+      describe('slowmode', () => {
+        it('should be object with fields "enable" and "disable" which ' +
+          'are functions', () => {
+          const client = mkClient();
+          const repo = new ChannelsRepository(client as any);
 
-        expect(repo.slowmode).toEqual({
-          on: expect.any(Function),
-          off: expect.any(Function),
+          expect(repo.slowmode).toEqual({
+            enable: expect.any(Function),
+            disable: expect.any(Function),
+          });
         });
-        repo.slowmode.on(duration, channel);
-        expect(client.say).toHaveBeenLastCalledWith(`/slow ${duration}`, channel);
 
-        repo.slowmode.off(channel);
-        expect(client.say).toHaveBeenLastCalledWith('/slowoff', channel);
+        it('should say "/slowoff" when slowmode.disable() called', () => {
+          const client = mkClient();
+          const repo = new ChannelsRepository(client as any);
+          const channel = 'channel';
+
+          repo.slowmode.disable(channel);
+          expect(client.say).toHaveBeenLastCalledWith('/slowoff', channel);
+        });
+
+        it('should say "/slow" when slowmode.enable() called', () => {
+          const client = mkClient();
+          const repo = new ChannelsRepository(client as any);
+
+          repo.slowmode.enable();
+          expect(client.say).toHaveBeenLastCalledWith('/slow', undefined);
+        });
+
+        it('should say "/slow {secs}" when slowmode.enable(secs) called', () => {
+          const client = mkClient();
+          const repo = new ChannelsRepository(client as any);
+          const channel = 'channel';
+          const duration = 300;
+
+          repo.slowmode.enable(duration, channel);
+          expect(client.say).toHaveBeenLastCalledWith(`/slow ${duration}`, channel);
+        });
+      });
+
+      describe('followersOnly', () => {
+        it('should be object with fields "enable" and "disable" which ' +
+          'are functions', () => {
+          const client = mkClient();
+          const repo = new ChannelsRepository(client as any);
+
+          expect(repo.followersOnly).toEqual({
+            enable: expect.any(Function),
+            disable: expect.any(Function),
+          });
+        });
+
+        it('should say "/followers" when followersOnly.disable() called', () => {
+          const client = mkClient();
+          const repo = new ChannelsRepository(client as any);
+          const channel = 'channel';
+
+          repo.followersOnly.disable(channel);
+          expect(client.say).toHaveBeenLastCalledWith('/followersoff', channel);
+        });
+
+        it('should say "/followers" when followersOnly.enable() called', () => {
+          const client = mkClient();
+          const repo = new ChannelsRepository(client as any);
+          const channel = 'channel';
+          const duration = 300;
+
+          repo.followersOnly.enable(duration, channel);
+          expect(client.say).toHaveBeenLastCalledWith(`/followers ${duration}`, channel);
+        });
+
+        it('should say "/followers {mins}" when followersOnly.enable(mins) called', () => {
+          const client = mkClient();
+          const repo = new ChannelsRepository(client as any);
+
+          repo.followersOnly.enable();
+          expect(client.say).toHaveBeenLastCalledWith('/followers', undefined);
+        });
       });
 
       it('"deleteMessage" says "/delete {msgId}"', () => {
@@ -104,14 +166,24 @@ describe('repositories', () => {
         expect(client.say).toHaveBeenLastCalledWith(`/raid ${target}`, channel);
       });
 
-      it('"marker" says "/marker {comment}"', () => {
-        const client = mkClient();
-        const channel = 'channel';
-        const repo = new ChannelsRepository(client as any);
-        const comment = 'some comment';
+      describe('marker', () => {
+        it('should say "/marker" if comment is not defined', () => {
+          const client = mkClient();
+          const repo = new ChannelsRepository(client as any);
 
-        repo.marker(comment, channel);
-        expect(client.say).toHaveBeenLastCalledWith(`/marker ${comment}`, channel);
+          repo.marker();
+          expect(client.say).toHaveBeenLastCalledWith('/marker', undefined);
+        });
+
+        it('should say "/marker {comment}" if comment is defined', () => {
+          const client = mkClient();
+          const channel = 'channel';
+          const repo = new ChannelsRepository(client as any);
+          const comment = 'some comment';
+
+          repo.marker(comment, channel);
+          expect(client.say).toHaveBeenLastCalledWith(`/marker ${comment}`, channel);
+        });
       });
 
       it('"me" says "/me {action}"', () => {
@@ -136,11 +208,10 @@ describe('repositories', () => {
 
       each([
         ['emoteOnly', '/emoteonly', '/emoteonlyoff'],
-        ['followersOnly', '/followers', '/followersoff'],
         ['r9k', '/r9kbeta', '/r9kbetaoff'],
-      ]).it('Command %s should be object with fields "on" and "off". "on" ' +
-        'field is a function sending message "%s" to channel and "off" is ' +
-        'a function sending message "%s"',
+      ]).it('Command %s should be object with fields "enable" and "disable". ' +
+        '"enable" field is a function sending message "%s" to channel ' +
+        'and "disable" is a function sending message "%s"',
         (command: string, onMessage: string, offMessage: string) => {
           const client = mkClient();
           const channel = 'channel';
@@ -148,13 +219,13 @@ describe('repositories', () => {
           const handler = repo[command];
 
           expect(handler).toEqual({
-            on: expect.any(Function),
-            off: expect.any(Function),
+            enable: expect.any(Function),
+            disable: expect.any(Function),
           });
-          handler.on(channel);
+          handler.enable(channel);
           expect(client.say).toHaveBeenLastCalledWith(onMessage, channel);
 
-          handler.off(channel);
+          handler.disable(channel);
           expect(client.say).toHaveBeenLastCalledWith(offMessage, channel);
         },
       );

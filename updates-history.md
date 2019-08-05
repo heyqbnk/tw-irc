@@ -1,4 +1,32 @@
 # Updates history
+#### Release 2.0.0
+`WARNING: BREAKING CHANGES`
+
+##### Client
+- `bindChannel` was replaced with `assignChannel.`
+
+##### Events
+- `Bugfix:` `Notice` listener now gets parameter `message`
+
+##### Channels
+- Mode-oriented fields were reworked. Their values were changed from
+`{ on: function, off: function }` to `{ enable: function, disable: function }`
+due to `on` and `off` look like events listening. Example:
+```typescript
+// Old
+client.channels.followersOnly.on();
+
+// New
+client.channels.followersOnly.enable();
+```
+- `followersMode.enable` now is able to accept duration in minutes. This
+time interval means how long should user follow the channel to say something
+in chat. (`/followers 60` - if we want to allow to say something only
+for users, who is following for 60 minutes at least)
+
+##### Docs
+- Added `API documentation` section
+
 #### Release 1.1.6
 `WARNING: BREAKING CHANGES`
 
@@ -58,7 +86,7 @@ by client instance. This field is used by EventsRepository to detect
 if called event is ours.
 
 ##### Other
-- Temporarily removed API documentation. Will be added in `v1.1.7`.
+- Temporarily removed API documentation. Will be added in `v1.2.0`.
 - `EIRCCommand` was renamed to `ESignal` which has a bit more accurate name.
 - Template like `moderator/5` (badge information) is now parsed like 
 `{ name: "moderator", value: 5 }`. This template can appear in message

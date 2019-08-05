@@ -79,12 +79,12 @@ describe('client', () => {
       expect(spy).toHaveBeenCalledWith(command, listener);
     });
 
-    it('"bindChannel" sets boundChannel to passed value', () => {
+    it('"assignChannel" sets assignedChannel to passed value', () => {
       const client = new Client();
       const channel = 'some channel';
-      client.bindChannel(channel);
+      client.assignChannel(channel);
 
-      expect((client as any).boundChannel).toBe(channel);
+      expect((client as any).assignedChannel).toBe(channel);
     });
 
     describe('say', () => {
@@ -109,7 +109,7 @@ describe('client', () => {
           message,
         });
 
-        client.bindChannel(channel);
+        client.assignChannel(channel);
         client.say(message);
         expect(spy).toHaveBeenCalledWith(ESignal.Message, {
           channel,

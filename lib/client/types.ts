@@ -4,7 +4,7 @@ import { ChannelsRepository } from '../repositories/channels';
 import { UsersRepository } from '../repositories/users';
 import { UtilsRepository } from '../repositories/utils';
 
-import { TObservableEvents, TSignalListenersMap } from '../repositories/events';
+import { TObservableSignals, TSignalListenersMap } from '../repositories/events';
 
 interface IAuthInfo {
   login: string;
@@ -16,9 +16,9 @@ interface IClientConstructorProps {
   secure?: boolean;
 }
 
-type TListeningManipulator = <Command extends TObservableEvents>(
-  command: Command,
-  listener: TSignalListenersMap[Command],
+type TListeningManipulator = <Signal extends TObservableSignals>(
+  command: Signal,
+  listener: TSignalListenersMap[Signal],
 ) => void;
 
 /**
@@ -70,7 +70,7 @@ interface IClient {
    * Binds this client to passed channel.
    * @param {string} channel
    */
-  bindChannel(channel: string): void;
+  assignChannel(channel: string): void;
 
   /**
    * Says a message to channel.

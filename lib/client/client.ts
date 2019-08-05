@@ -18,7 +18,7 @@ class Client implements IClient {
   /**
    * Bound channel for client.
    */
-  private boundChannel: string | undefined;
+  private assignedChannel: string | undefined;
 
   /**
    * Repository responsible for events binding.
@@ -62,22 +62,22 @@ class Client implements IClient {
 
   public disconnect = () => this.socket.disconnect();
 
-  public on: TListeningManipulator = (command, listener) => {
-    this.events.on(command, listener);
+  public on: TListeningManipulator = (signal, listener) => {
+    this.events.on(signal, listener);
   };
 
-  public off: TListeningManipulator = (command, listener) => {
-    this.events.off(command, listener);
+  public off: TListeningManipulator = (signal, listener) => {
+    this.events.off(signal, listener);
   };
 
-  public bindChannel = (channel: string) => this.boundChannel = channel;
+  public assignChannel = (channel: string) => this.assignedChannel = channel;
 
   public say = (message: string, channel?: string) => {
-    if (!channel && !this.boundChannel) {
+    if (!channel && !this.assignedChannel) {
       throw new Error('Cannot send message due to channel is not stated');
     }
     this.utils.sendSignal(ESignal.Message, {
-      channel: channel || this.boundChannel,
+      channel: channel || this.assignedChannel,
       message,
     });
   };

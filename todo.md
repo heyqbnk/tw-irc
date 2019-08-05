@@ -9,8 +9,9 @@ the feature.
 2. Make CLEARMSG delete all user's messages. At this time we can delete only
 one.
 
-3. Rework `/followers` command. We are not able to set `duration` which
-is equal to required following time.
-
-4. Create `ChannelController` which can be created from `Client`. It will
+3. Create `ChannelController` which can be created from `Client`. It will
 allow to control channel directly (`v2` or `v3` feature maybe).
+
+4. Create `Namespace: rooms`.
+
+5. Rework methods accepting more than 1 parameter in `channels` and `users`.

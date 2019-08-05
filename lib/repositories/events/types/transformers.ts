@@ -1,11 +1,11 @@
 import { IParsedIRCMessage } from '../../../utils';
-import { TObservableEvents } from './observable';
+import { TObservableSignals } from './observable';
 import { IEventParams } from './params';
 
 /**
  * Generic type to describe transformer for event.
  */
-export type TEventTransformer<Signal extends TObservableEvents> = (
+export type TEventTransformer<Signal extends TObservableSignals> = (
   login: string,
   message: IParsedIRCMessage,
 ) => IEventParams[Signal];
@@ -14,5 +14,5 @@ export type TEventTransformer<Signal extends TObservableEvents> = (
  * Description of transformers of parameters for commands.
  */
 export type TEventTransformersMap = {
-  [Command in TObservableEvents]: TEventTransformer<Command>;
+  [Command in TObservableSignals]: TEventTransformer<Command>;
 };
