@@ -1,131 +1,110 @@
 # tw-irc  
   
-Here is a library that handles connection to Twitch IRC. It allows you to join 
-or leave channels, detect and send new messages and other.  
+Here is a library that handles connection to Twitch IRC. It allows you to join or leave channels, detect and send new messages and other.
 
-We expect, you are using TypeScript, because some error protection mechanisms 
-inside this library are based on TypeScript typings restrictions.  
-  
-## Documentation  
-### Create client  
-Library contains a client, that connects to Twitch IRC. Here is an example to 
-create an instance of this client:  
-```typescript  
-import { Client } from 'tw-irc';  
-  
-// Create anonymous client  
+We expect, you are using TypeScript, because some error protection mechanisms inside this library are based on TypeScript typings restrictions.
+
+## Documentation
+### Create client
+Library contains a client, that connects to Twitch IRC. Here is an example to create an instance of this client:
+
+```typescript
+import { Client } from 'tw-irc';
+
+// Create anonymous client
 const client = new Client();
 
 // Create client with authentication. It will allow us to send messages.
 const aithenticatedClient = new Client({
-    auth: {
-        login: '...', // your login, lower-cased
-        password: '...', // get it here: https://twitchapps.com/tmi/
-    },
+  auth: {
+    login: '...', // your login, lower-cased
+    password: '...', // get it here: https://twitchapps.com/tmi/
+  },
 });
 ```  
-  
+
 ### Connect to IRC  
-After client is created, we have to initialize socket connection to Twitch IRC. 
-We need to create an instance of `Socket` which will try to connect to IRC. 
-After `connect()` is called, previous `WebSocket` will be disconnected.  
-  
-Remember, that `Socket` is a wrapper around `WebSocket`, it contains all bound 
-listeners. The reason is `WebSocket`'s API does not allow us to reconnect, it 
-requires new instance initialization. So, wrapper is the best way to handle 
-`WebSocket`'s processes and restrictions.
+After client is created, we have to initialize socket connection to Twitch IRC. We need to create an instance of `Socket` which will try to connect to IRC. After `connect()` is called, previous `WebSocket` will be disconnected.
+
+Remember, that `Socket` is a wrapper around `WebSocket`, it contains all bound listeners. The reason is `WebSocket`'s API does not allow us to reconnect, it requires new instance initialization. So, wrapper is the best way to handle `WebSocket`'s processes and restrictions.
    
-```typescript  
-// Connect to IRC  
-client.connect();  
-```  
-  
+```typescript
+// Connect to IRC
+client.connect();
+```
+
 ### Channel binding  
-In case, you want to use this client only for 1 channel, you can remember it in 
-the client, to shorten commands call. Otherwise, you will always have to pass 
-parameter `channel` in commands.  
+In case, you want to use this client only for 1 channel, you can remember it in the client, to shorten commands call. Otherwise, you will always have to pass parameter `channel` in commands.
+
+There is no difference, when to call `assignChannel`, before or after `connect`
+was called. This method just remembers passed channel.
   
-There is no difference, when to call `assignChannel`, before or after `connect` 
-was called. This method just remembers passed channel.  
+```typescript
+// Previously, we have to call command with:
+client.channels.emoteOnly.on('summit1g');
   
-```typescript  
-// Previously, we have to call command with:  
-client.channels.emoteOnly.on('summit1g');  
-  
-// But we can remember the channel, to shorten command calls. After channel  
-// bind, all commands without passed channel will take last assigned channel.  
-client.assignChannel('summit1g');  
-client.channels.emoteOnly.enable();  
-```  
-  
-## Events  
-Client supports 2 types of events - WebSocket events (`message`, `open`, 
-`close`, `error`) and IRC events.  
-  
+// But we can remember the channel, to shorten command calls. After channel
+// bind, all commands without passed channel will take last assigned channel.
+client.assignChannel('summit1g');
+client.channels.emoteOnly.enable();
+```
+
+## Events
+Client supports 2 types of events - WebSocket events (`message`, `open`, `close`, `error`) and IRC events.
+
 ### WebSocket events  
-These events are directly bound to created WebSocket 
-(watch [WebSocket specs](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) 
-for more info) after `connect()`:  
-```javascript  
-function onMessage(event) {  
- console.log('Socket message event occurred', event);  
-}  
-  
-// Start listening  
-client.socket.on('message', onMessage);  
-  
-// Remove listener  
-client.socket.off('message', onMessage);  
+These events are directly bound to created WebSocket (watch [WebSocket specs](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) for more info) after `connect()`:
+```javascript
+function onMessage(event) {
+ console.log('Socket message event occurred', event);
+}
+
+// Start listening
+client.socket.on('message', onMessage);
+
+// Remove listener
+client.socket.off('message', onMessage);
 ```  
-  
-> **Warning**: Try not to add events listeners inside events listeners, or 
-handle this behaviour correctly. The reason is listeners are stashed inside 
-client.socket instance and client.disconnect() does not remove them. *You have 
-to remove them manually if it is required*.  
-  
-The second thing you have to know is you should not use client commands 
-like `ban`, `say` and other before the connection was successfully established. 
-You can detect its existence by calling `getReadyState()` method which returns 
-`ESocketReadyState`.  
-  
-*Reference: [Socket ready states](https://github.com/wolframdeus/tw-irc/blob/79154d6b1e7940a3d3d679730276794dadfd120c/lib/socket/types.ts#L32)*  
-  
-```typescript  
-import { ESocketReadyState } from 'tw-irc'  
-  
-const readyState = client.socket.getReadyState();  
-  
-if (readyState === ESocketReadyState.Open) { 
-    console.log('Socket connection is established');  
-} else if (readyState === ESocketReadyState.Closed) { 
-    console.log('Socket connection is closed');  
-} else if (readyState === ESocketReadyState.Closing) { 
-    console.log('Socket connection is closing');  
+
+> **Warning**: Try not to add events listeners inside events listeners, or handle this behaviour correctly. The reason is listeners are stashed inside client.socket instance and client.disconnect() does not remove them. *You have to remove them manually if it is required*.  
+
+The second thing you have to know is you should not use client commands like `ban`, `say` and other before the connection was successfully established. You can detect its existence by calling `getReadyState()` method which returns `ESocketReadyState`.
+ 
+*Reference: [Socket ready states](https://github.com/wolframdeus/tw-irc/blob/79154d6b1e7940a3d3d679730276794dadfd120c/lib/socket/types.ts#L32)*
+
+```typescript
+import { ESocketReadyState } from 'tw-irc'
+
+const readyState = client.socket.getReadyState();
+
+if (readyState === ESocketReadyState.Open) {
+  console.log('Socket connection is established');
+} else if (readyState === ESocketReadyState.Closed) {
+  console.log('Socket connection is closed');
+} else if (readyState === ESocketReadyState.Closing) {
+  console.log('Socket connection is closing');
 } else {
-    console.log('Socket connection is being established..');  
+  console.log('Socket connection is being established..');  
 }  
 ```  
   
-Otherwise, you can call these methods after `open` event of `client.socket`  
-was called, like:  
+Otherwise, you can call these methods after `open` event of `client.socket`was called, like:
 ```typescript  
 client.socket.on('open', () => { 
-    // OK, we got stable connection. Join some channel. 
-    const channel = 'sodapoppin';
-    
-    client.channels.join(channel);
+  // OK, we got stable connection. Join some channel. 
+  const channel = 'sodapoppin';
   
-    // Say something in channel
-    client.say('Hello @sodapoppin', channel);
+  client.channels.join(channel);
+  
+  // Say something in channel
+  client.say('Hello @sodapoppin', channel);
 });
   
 client.connect();  
 ```  
   
 ### IRC events  
-Library contains special enum `ESignal` which allows you to use  
-dictionary instead of raw texts. Each listener gets different list of parameters  
-depending on passed `ESignal`.  
+Library contains special enum `ESignal` which allows you to use dictionary instead of raw texts. Each listener gets different list of parameters depending on passed `ESignal`.
   
 *Reference: [Observable events](https://github.com/wolframdeus/tw-irc/blob/master/lib/repositories/events/types/observable.ts), 
 [event parameters](https://github.com/wolframdeus/tw-irc/blob/79154d6b1e7940a3d3d679730276794dadfd120c/lib/repositories/events/types/params.ts#L107)*  
@@ -133,27 +112,26 @@ depending on passed `ESignal`.
 import { ESignal } from 'tw-irc';  
   
 client.socket.on('open', () => {  
-    // Firstly, we have to join some channel  client.channels.join('summit1g');  
-    // Bind event to listen to "PRIVMSG" event  
-    client.on(ESignal.Message, console.log);  
+  // Firstly, we have to join some channel  client.channels.join('summit1g');  
+  // Bind event to listen to "PRIVMSG" event  
+  client.on(ESignal.Message, console.log);  
 });  
 ```   
 ### Custom IRC messages handling  
-If you want full control over the messages coming from IRC, you can use  
-this trick:  
+If you want full control over the messages coming from IRC, you can use this trick:
 ```typescript  
 import { parseIRCMessage, prepareIRCMessage } from 'tw-irc/utils';  
   
 client.socket.on('message', event => {  
-    // Convert raw socket message to array of messages. We need this action 
-    // because commands can be concatenated in one message and doing this, 
-    // we just detect them. const messages = prepareIRCMessage(event.data);  
-    // Parse each of the messages  
-    const parsedMessages = messages.map(parseIRCMessage);  
-    
-    parsedMessages.forEach(message => {  
-        // You can react however you want after all of messages are parsed. 
-    });
+  // Convert raw socket message to array of messages. We need this action 
+  // because commands can be concatenated in one message and doing this, 
+  // we just detect them. const messages = prepareIRCMessage(event.data);  
+  // Parse each of the messages  
+  const parsedMessages = messages.map(parseIRCMessage);  
+  
+  parsedMessages.forEach(message => {  
+    // You can react however you want after all of messages are parsed. 
+  });
 });  
 ```  
   
@@ -212,36 +190,31 @@ const client = new Client();
 With parameters:  
 ```typescript  
 const auth = {  
-    login: 'tobii', // Password must start with "oauth:". Otherwise, an error will be thrown. 
-    password: 'oauth:...'
+  login: 'tobii', // Password must start with "oauth:". Otherwise, an error will be thrown. 
+  password: 'oauth:...'
 };  
   
 const client = new Client({  
-    // Connection will be secured 
-    secure: true, 
-    // Authentication data used to identify you in Twitch IRC. Remember, 
-    // that you will not be able to send any messages, until you signed in 
-    // with correct data. 
-    auth,
+  // Connection will be secured 
+  secure: true, 
+  // Authentication data used to identify you in Twitch IRC. Remember, 
+  // that you will not be able to send any messages, until you signed in 
+  // with correct data. 
+  auth,
 });  
 ```  
   
 #### `Function:` `connect()`  
-Initializes new WebSocket connection with created internally instance of  
-`Socket`.  
+Initializes new WebSocket connection with created internally instance of `Socket`.  
 ```typescript  
 // Connect to IRC  
 client.connect();  
 ```  
   
 #### `Function:` `disconnect()`  
-Calls `disconnect` method of `Socket` instance created internally, what means  
-`WebSocket` will be closed.  
-> **Notification**: It does not mean, that all your bound events will be 
-automatically removed. All bound events are stashed inside `Socket` instance  
-which is wrapper around `WebSocket`. So, if you call `disconnect()` and then  
-`connect()`, all previously bound event listeners will still work and you dont  
-have to bind them again.  
+Calls `disconnect` method of `Socket` instance created internally, what means `WebSocket` will be closed.  
+> **Notification**: It does not mean, that all your bound events will be automatically removed. All bound events are stashed inside `Socket` instance which is wrapper around `WebSocket`. So, if you call `disconnect()` and then `connect()`, all previously bound event listeners will still work and you dont have to bind them again.  
+
 ```typescript  
 // Disconnect from IRC  
 client.disconnect()  
@@ -260,7 +233,7 @@ Adds signal listener. Triggers on incoming message from IRC in case, its command
 ```typescript  
 // Start listening for PRIVMSG event  
 client.on(ESignal.Message, params => {  
-    console.log('Event PRIVMSG occurred', params);
+  console.log('Event PRIVMSG occurred', params);
 });  
 ```  
   
@@ -269,7 +242,7 @@ Have the same parameters as `on(signal, listener)`. Removes listener from signal
   
 ```typescript  
 const listener = params => {  
-    console.log(console.log('Event PRIVMSG occurred', params));
+  console.log(console.log('Event PRIVMSG occurred', params));
 };  
   
 // Starting listening for PRIVMSG event  
@@ -357,11 +330,7 @@ client.users.unvip('justin', 'sodapoppin');
 #### `Function:` `timeout(user, duration = '10m', reason?, channel?)`  
 > **WARNING**: Will be reworked in 3.0.0
 
-Temporarily prevent a user from chatting. Duration (optional, default=10 
-minutes) must be a positive integer; time unit (optional, default=s) must be 
-one of s, m, h, d, w; maximum duration is 2 weeks. Combinations like 1d2h are 
-also allowed. Reason is optional and will be shown to the target user and other 
-moderators.  
+Temporarily prevent a user from chatting. Duration (optional, default=10 minutes) must be a positive integer; time unit (optional, default=s) must be one of s, m, h, d, w; maximum duration is 2 weeks. Combinations like 1d2h are also allowed. Reason is optional and will be shown to the target user and other moderators.  
   
 | Argument | Type | Default value | Description |  
 | --- | --- | --- | --- |  
@@ -406,8 +375,7 @@ client.users.whisper('justin', 'sodapoppin');
 This field is responsible for actions connected with channels.  
   
 #### `Function:` `join(channel)`  
-Join some channel. To receive messages from channel, it is required to use this 
-method.  
+Join some channel. To receive messages from channel, it is required to use this method.
   
 | Argument | Type | Description |  
 | --- | --- | --- |  
@@ -431,9 +399,7 @@ client.channels.leave('sodapoppin');
 ```  
   
 #### `Function:` `changeColor(color, channel?)`  
-Change your username color. Color must be in hex (#000000) or one of the 
-following: Blue, BlueViolet, CadetBlue, Chocolate, Coral, DodgerBlue, Firebrick, 
-GoldenRod, Green, HotPink, OrangeRed, Red, SeaGreen, SpringGreen, YellowGreen.  
+Change your username color. Color must be in hex (#000000) or one of the following: Blue, BlueViolet, CadetBlue, Chocolate, Coral, DodgerBlue, Firebrick, GoldenRod, Green, HotPink, OrangeRed, Red, SeaGreen, SpringGreen, YellowGreen.  
   
 | Argument | Type | Description |  
 | --- | --- | --- |  
@@ -459,8 +425,7 @@ client.channels.me('just killed a demon!', 'sodapoppin');
 ```  
   
 #### `Function:` `marker(comment?, channel?)`  
-Adds a stream marker (with an optional comment, max 140 characters) at the 
-current timestamp. You can use markers in the Highlighter for easier editing.  
+Adds a stream marker (with an optional comment, max 140 characters) at the current timestamp. You can use markers in the Highlighter for easier editing.  
   
 | Argument | Type | Description |  
 | --- | --- | --- |  
@@ -562,8 +527,7 @@ client.channels.deleteMessage('sja1i-3adqww-2131', 'sodapoppin');
 ```  
   
 #### `Function:` `slowmode.enable(durationInSeconds, channel?)` and `slowmode.disable(channel?)`  
-Enables / Disables slow mode (limit how often users may send messages). 
-Duration (optional, default=30) must be a positive number of seconds.  
+Enables / Disables slow mode (limit how often users may send messages). Duration (optional, default=30) must be a positive number of seconds.  
   
 | Argument | Type | Description |  
 | --- | --- | --- |  
@@ -593,8 +557,7 @@ client.channels.r9k.disable('sodapoppin');
   
   
 #### `Function:` `followersOnly.enable(durationInMinutes, channel?)` and `followersOnly.disable(channel?)`  
-Enables followers-only mode (only users who have followed for 'duration' may 
-chat). Must be less than 3 months.  
+Enables followers-only mode (only users who have followed for 'duration' may chat). Must be less than 3 months.  
   
 | Argument | Type | Description |  
 | --- | --- | --- |  
