@@ -127,8 +127,8 @@ Library contains special enum `ESignal` which allows you to use
 dictionary instead of raw texts. Each listener gets different list of parameters  
 depending on passed `ESignal`.  
   
-Reference: [Observable events](https://github.com/wolframdeus/tw-irc/blob/master/lib/repositories/events/types/observable.ts),   
-[event parameters](https://github.com/wolframdeus/tw-irc/blob/79154d6b1e7940a3d3d679730276794dadfd120c/lib/repositories/events/types/params.ts#L107)  
+*Reference: [Observable events](https://github.com/wolframdeus/tw-irc/blob/master/lib/repositories/events/types/observable.ts), 
+[event parameters](https://github.com/wolframdeus/tw-irc/blob/79154d6b1e7940a3d3d679730276794dadfd120c/lib/repositories/events/types/params.ts#L107)*  
 ```typescript  
 import { ESignal } from 'tw-irc';  
   
@@ -250,7 +250,7 @@ client.disconnect()
 #### `Function:` `on(signal, listener)`  
 Adds signal listener. Triggers on incoming message from IRC in case, its command is equal to listener's.  
   
-*Reference: [Returned event parameters]((https://github.com/wolframdeus/tw-irc/blob/79154d6b1e7940a3d3d679730276794dadfd120c/lib/repositories/events/types/params.ts#L107))*  
+*Reference: [Returned event parameters](https://github.com/wolframdeus/tw-irc/blob/79154d6b1e7940a3d3d679730276794dadfd120c/lib/repositories/events/types/params.ts#L107)*  
   
 | Argument | Type | Description |  
 | --- | --- | --- |  
