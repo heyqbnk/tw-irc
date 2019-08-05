@@ -4,8 +4,8 @@ import { ESocketReadyState } from '../lib/socket/types';
 
 const client = new Client({
   auth: {
-    login: 'streamerspacebot',
-    password: 'oauth:3xpybrljzh009ihj0og6r8j8wizlad',
+    login: '...',
+    password: '...',
   },
 });
 
