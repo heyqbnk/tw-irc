@@ -4,6 +4,9 @@ import { TObservableSignals } from '../lib/repositories/events/types';
 
 const client = new Client();
 
+/**
+ * Prints current ready state.
+ */
 function printReadyState() {
   const state = client.socket.getReadyState();
 
@@ -18,35 +21,52 @@ function printReadyState() {
   }
 }
 
-printReadyState();
-
 const observableSignals: TObservableSignals[] = [
   ESignal.ClearChat, ESignal.ClearMessage, ESignal.GlobalUserState,
   ESignal.Host, ESignal.Join, ESignal.Leave, ESignal.Message, ESignal.Notice,
   ESignal.Reconnect, ESignal.RoomState, ESignal.UserNotice, ESignal.UserState,
 ];
 
-// Wait for connection to be opened
-client.socket.on('open', async () => {
+const listeners = [];
+
+/**
+ * Add all observable events listeners, join channel.
+ */
+function onConnected() {
   printReadyState();
+
+  // Watch each observable signal.
+  observableSignals.forEach(signal => {
+    const listener = params => console.log(`${signal} ::`, params);
+    listeners.push({ signal, listener });
+
+    client.on(signal, listener);
+  });
 
   // Join channel
   const channel = 'xakoh';
   client.channels.join(channel);
   client.assignChannel(channel);
+}
 
-  // Watch each observable signal.
-  observableSignals.forEach(signal => {
-    client.on(signal, params => console.log(`${signal} ::`, params));
-  });
-});
-
-client.socket.on('close', () => {
+/**
+ * Removes all previously added listeners.
+ */
+function onDisconnected() {
   printReadyState();
-});
 
+  // Dont forger to cleanup after disconnect.
+  listeners.forEach(({ signal, listener }) => client.off(signal, listener));
+}
+
+// Add event listener on socket opened
+client.socket.on('open', onConnected);
+client.socket.on('close', onDisconnected);
+
+printReadyState();
 client.connect();
 
+// Webpack Hot Module Reload feature
 if ((module as any).hot) {
   (module as any).hot.accept(() => {
     window.location.reload();
