@@ -125,7 +125,9 @@ import { parseIRCMessage, prepareIRCMessage } from 'tw-irc/utils';
 client.socket.on('message', event => {  
   // Convert raw socket message to array of messages. We need this action 
   // because commands can be concatenated in one message and doing this, 
-  // we just detect them. const messages = prepareIRCMessage(event.data);  
+  // we just detect them. 
+  const messages = prepareIRCMessage(event.data);  
+  
   // Parse each of the messages  
   const parsedMessages = messages.map(parseIRCMessage);  
   
@@ -190,7 +192,8 @@ const client = new Client();
 With parameters:  
 ```typescript  
 const auth = {  
-  login: 'tobii', // Password must start with "oauth:". Otherwise, an error will be thrown. 
+  login: 'tobii', 
+  // Password must start with "oauth:". Otherwise, an error will be thrown. 
   password: 'oauth:...'
 };  
   
