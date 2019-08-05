@@ -1,17 +1,14 @@
 # Updates history
-#### Release 2.0.1
-- Docs fixes
-
-#### Release 2.0.0
+### Release 2.0.0
 `WARNING: BREAKING CHANGES`
 
-##### Client
+#### Client
 - `bindChannel` was replaced with `assignChannel.`
 
-##### Events
+#### Events
 - `Bugfix:` `Notice` listener now gets parameter `message`
 
-##### Channels
+#### Channels
 - Mode-oriented fields were reworked. Their values were changed from
 `{ on: function, off: function }` to `{ enable: function, disable: function }`
 due to `on` and `off` look like events listening. Example:
@@ -27,10 +24,12 @@ time interval means how long should user follow the channel to say something
 in chat. (`/followers 60` - if we want to allow to say something only
 for users, who is following for 60 minutes at least)
 
-##### Docs
+#### Docs
 - Added `API documentation` section
 
-#### Release 1.1.6
+---
+
+### Release 1.1.6
 `WARNING: BREAKING CHANGES`
 
 This update is rather huge and breaks compatibility. Make sure,
@@ -38,7 +37,7 @@ you updated package and reworked your code a bit. There are
 a lot of internal changes, but they should not touch external interface
 too much.
 
-##### Events
+#### Events
 - `Join` listener reworked. It now contains additional join data 
 about `channelId` and `roomUuid` if someone joined chat-room.
 - `Message` listener reworked. It now contains additional message data.
@@ -48,7 +47,9 @@ about `channelId` and `roomUuid` if someone joined chat-room.
 data about the current logged-in user through IRC tags. It is sent 
 after successfully authenticating (sending a PASS/NICK command).
 > You can use this listener to detect successful login.
-- `Host` listener ready. It detects someone's host start and stop.
+- `Host` listener ready. It detects someone's host start and stop. Notice, that this event listener will be triggered
+only ON channel, that triggered HOST, not on channel which IS BEING
+HOSTED (IRC does not detect it).
 - `Reconnect` listener ready. It detects if IRC requested a
 reconnect for you.
 > Dont use it in case, you want to manually reconnect client. 
@@ -56,11 +57,9 @@ reconnect for you.
 - `RoomState` listener ready. It is triggered when you join some
 channel or channel changed its state (like mode change).
 - `Notice` listener ready. Receive a general notice from the server.
----
+
 - All listeners now have property `raw`, which contains raw message
-from IRC. Notice, that this event listener will be triggered
-only ON channel, that triggered HOST, not on channel which IS BEING
-HOSTED (IRC does not detect it).
+from IRC. 
 - `UserNotice` listener ready. Trigger specification:
 https://dev.twitch.tv/docs/irc/tags#usernotice-twitch-tags
 - `UserState` listener ready. Sends user-state data when a user joins a 
@@ -70,17 +69,17 @@ It is needed due to this repo should recognize, if event
 is somehow connected with our client. It means, property
 `isSelf` appeared in some listeners returned params.
 
-##### Utils
+#### Utils
 - `sendRawMessage` was removed. Use `client.socket.send()` now instead.
 - `sendCommand` was replaced with `sendSignal`.
 
-##### Socket
+#### Socket
 - Now `Socket` detects if IRC requested a `RECONNECT` event, 
 automatically reconnecting client.
 - It is now responsible for requesting initial capabilities. Previously
 `Client` did it.
 
-##### Client
+#### Client
 - Now **THROWS** error instead of warning user in case password is
 invalid. The reason is developer can skip this message, having an unexpected 
 behaviour, but client will work fine.
@@ -88,7 +87,7 @@ behaviour, but client will work fine.
 by client instance. This field is used by EventsRepository to detect
 if called event is ours.
 
-##### Other
+#### Other
 - Temporarily removed API documentation. Will be added in `v1.2.0`.
 - `EIRCCommand` was renamed to `ESignal` which has a bit more accurate name.
 - Template like `moderator/5` (badge information) is now parsed like 
@@ -98,7 +97,9 @@ event (`ESignal.Message`)
 `{ emoteId: "Kappa", ranges: [{ from: 2, to: 5 }, { from: 29, to: 30 }]}`
 - `prepareIRCMessage`'s result field `command` was replaced with `signal`.
 
-#### Release 1.1.5
+---
+
+### Release 1.1.5
 - Added huge amount of docs
 - Added implementation interfaces for classes
 - Added warning if password is incorrect (starting not with `oauth:`)
