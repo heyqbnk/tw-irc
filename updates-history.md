@@ -1,4 +1,7 @@
 # Updates history
+#### Release 2.0.1
+- Docs fixes
+
 #### Release 2.0.0
 `WARNING: BREAKING CHANGES`
 
