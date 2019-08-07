@@ -6,9 +6,9 @@ export interface ISignalListener {
   listener: TSignalListener<any>;
 }
 
-export type TListeningManipulator = <Command extends TObservableSignals>(
-  event: Command,
-  listener: TSignalListenersMap[Command],
+export type TListeningManipulator = <Signal extends TObservableSignals>(
+  event: Signal,
+  listener: TSignalListenersMap[Signal],
 ) => void;
 
 /**

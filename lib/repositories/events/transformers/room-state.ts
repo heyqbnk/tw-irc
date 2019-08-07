@@ -6,7 +6,7 @@ import {
   IRoomStateMeta,
 } from '../types';
 
-import { getChannel, isDefined } from '../utils';
+import { getPlaceData, isDefined } from '../utils';
 
 /**
  * Transformer for ROOMSTATE
@@ -43,5 +43,5 @@ export const roomStateTransformer: TEventTransformersMap[ESignal.RoomState] =
       meta.slow = slow;
     }
 
-    return { ...meta, channel: getChannel(message), raw: message.raw };
+    return { ...meta, ...getPlaceData(message), raw: message.raw };
   };

@@ -5,7 +5,7 @@ import {
   IMessageMetaPrepared,
 } from '../types';
 
-import { getChannel, getPrefixUser, convertToArray } from '../utils';
+import { getPrefixUser, convertToArray, getPlaceData } from '../utils';
 
 /**
  * Transformer for PRIVMSG
@@ -37,7 +37,7 @@ export const messageTransformer: TEventTransformersMap[ESignal.Message] =
 
     return {
       ...meta,
-      channel: getChannel(message),
+      ...getPlaceData(message),
       message: message.data,
       author,
       timestamp: tmiSentTs,

@@ -89,12 +89,19 @@ export class Socket implements ISocket {
     this.send(ESignal.Nickname + ' ' + login);
   };
 
-  public connect = () => {
+  public connect = async (): Promise<void> => {
     if (this.socket) {
       this.socket.close();
     }
     this.socket = new WebSocket(this.path);
     this.bindEvents();
+
+    // Add event listener on "open", to know, when connection is
+    // successfully opened.
+    return new Promise(res => {
+      // tslint:disable-next-line
+      this.socket.addEventListener('open', () => res());
+    });
   };
 
   public disconnect = () => {

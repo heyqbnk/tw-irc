@@ -79,43 +79,22 @@ describe('client', () => {
       expect(spy).toHaveBeenCalledWith(command, listener);
     });
 
-    it('"assignChannel" sets assignedChannel to passed value', () => {
+    it('"assignChannel" should call channels.assign', () => {
       const client = new Client();
       const channel = 'some channel';
+      const spy = jest.spyOn(client.channels, 'assign');
       client.assignChannel(channel);
 
-      expect((client as any).assignedChannel).toBe(channel);
+      expect(spy).toBeCalledWith(channel);
     });
 
-    describe('say', () => {
-      it('should throw an error, if a channel argument was not passed and ' +
-        'channel was not bound to client.', () => {
-        const client = new Client();
-        expect(() => client.say('Hey!')).toThrow();
-      });
+    it('"assignRoom" should call rooms.assign', () => {
+      const client = new Client();
+      const room = { channelId: '123', roomUuid: '2312' };
+      const spy = jest.spyOn(client.rooms, 'assign');
+      client.assignRoom(room);
 
-      it('should call utils.sendSignal() if channel was passed, or was ' +
-        'bound to client', () => {
-        const client = new Client();
-        const channel = 'woof!';
-        const saidChannel = 'horror';
-        const message = 'Woop-woop!';
-        const spy = jest.spyOn(client.utils, 'sendSignal')
-          .mockImplementation(jest.fn);
-
-        client.say(message, saidChannel);
-        expect(spy).toHaveBeenCalledWith(ESignal.Message, {
-          channel: saidChannel,
-          message,
-        });
-
-        client.assignChannel(channel);
-        client.say(message);
-        expect(spy).toHaveBeenCalledWith(ESignal.Message, {
-          channel,
-          message,
-        });
-      });
+      expect(spy).toBeCalledWith(room);
     });
   });
 });

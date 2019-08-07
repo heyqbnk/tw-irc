@@ -29,42 +29,45 @@ const observableSignals: TObservableSignals[] = [
 
 const listeners = [];
 
-/**
- * Add all observable events listeners, join channel.
- */
-function onConnected() {
-  printReadyState();
-
-  // Watch each observable signal.
-  observableSignals.forEach(signal => {
-    const listener = params => console.log(`${signal} ::`, params);
-    listeners.push({ signal, listener });
-
-    client.on(signal, listener);
-  });
-
-  // Join channel
-  const channel = 'xakoh';
-  client.channels.join(channel);
-  client.assignChannel(channel);
-}
-
-/**
- * Removes all previously added listeners.
- */
-function onDisconnected() {
-  printReadyState();
-
-  // Dont forger to cleanup after disconnect.
-  listeners.forEach(({ signal, listener }) => client.off(signal, listener));
-}
-
-// Add event listener on socket opened
-client.socket.on('open', onConnected);
-client.socket.on('close', onDisconnected);
-
 printReadyState();
-client.connect();
+
+(async () => {
+  /**
+   * Add all observable events listeners, join channel.
+   */
+  function onConnected() {
+    printReadyState();
+
+    // Watch each observable signal.
+    observableSignals.forEach(signal => {
+      const listener = params => console.log(`${signal} ::`, params);
+      listeners.push({ signal, listener });
+
+      client.on(signal, listener);
+    });
+
+    // Join channel
+    const channel = 'c_a_k_e';
+    client.channels.join(channel);
+    client.assignChannel(channel);
+  }
+
+  /**
+   * Removes all previously added listeners.
+   */
+  function onDisconnected() {
+    printReadyState();
+
+    // Dont forger to cleanup after disconnect.
+    listeners.forEach(({ signal, listener }) => client.off(signal, listener));
+  }
+
+  // Add event listener on socket opened
+  client.socket.on('open', onConnected);
+  client.socket.on('close', onDisconnected);
+
+  await client.connect();
+})();
 
 // Webpack Hot Module Reload feature
 if ((module as any).hot) {

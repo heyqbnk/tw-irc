@@ -1,4 +1,6 @@
 /**
  * A place where event occurred.
  */
-export type TPlace = string | { channelId: string, roomUuid: string };
+export type TPlace =
+  { channel: string }
+  | { room: { channelId: string, roomUuid: string } };

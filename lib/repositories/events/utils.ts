@@ -31,10 +31,10 @@ export function getPlaceData(message: IParsedIRCMessage): TPlace {
   if (channel === 'chatrooms') {
     const [channelId, roomUuid] = message.data.split(':');
 
-    return { channelId, roomUuid };
+    return { room: { channelId, roomUuid } };
   }
 
-  return channel;
+  return { channel };
 }
 
 /**

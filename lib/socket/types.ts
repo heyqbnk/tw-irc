@@ -43,29 +43,24 @@ interface ISocket {
   /**
    * Initializes a socket connection.
    */
-  connect(): void;
-
+  connect(): Promise<void>;
   /**
    * Closes socket connection.
    */
   disconnect(): void;
-
   /**
    * Adds socket event listener.
    */
   on: TListeningManipulator;
-
   /**
    * Removes socket event listener.
    */
   off: TListeningManipulator;
-
   /**
    * Gets current connection state.
    * @returns {ESocketReadyState}
    */
   getReadyState(): ESocketReadyState;
-
   /**
    * Sends a message by socket.
    * @param {string} message

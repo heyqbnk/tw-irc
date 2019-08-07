@@ -2,13 +2,21 @@ import {
   ISignalListener,
   IEventsRepository,
   TListeningManipulator,
+  TObservableSignals,
 } from './types';
 import { parseIRCMessage, prepareIRCMessage } from '../../utils';
 import { transformers } from './transformers';
 import { Socket } from '../../socket';
+import { ESignal } from '../../types';
+
+const observable: TObservableSignals[] = [
+  ESignal.ClearChat, ESignal.ClearMessage, ESignal.GlobalUserState,
+  ESignal.Host, ESignal.Join, ESignal.Leave, ESignal.Message, ESignal.Notice,
+  ESignal.Reconnect, ESignal.RoomState, ESignal.UserNotice, ESignal.UserState,
+];
 
 export class EventsRepository implements IEventsRepository {
-  private readonly commandListeners: ISignalListener[] = [];
+  private readonly signalListeners: ISignalListener[] = [];
   private readonly socket: Socket;
   private readonly login: string;
 
@@ -29,7 +37,7 @@ export class EventsRepository implements IEventsRepository {
       const parsedMessage = parseIRCMessage(message);
 
       // Check if there are bound listeners to this command.
-      this.commandListeners.forEach(item => {
+      this.signalListeners.forEach(item => {
         if (item.event === parsedMessage.signal) {
           // We have to pre-transform parameters to format, applicable
           // by specific listener.
@@ -42,16 +50,21 @@ export class EventsRepository implements IEventsRepository {
   };
 
   public on: TListeningManipulator = (event, listener) => {
-    this.commandListeners.push({ event, listener });
+    if (!observable.includes(event)) {
+      throw new Error(
+        `Signal listening for signal "${event}" is not supported.`,
+      );
+    }
+    this.signalListeners.push({ event, listener });
   };
 
   public off: TListeningManipulator = (command, listener) => {
-    const foundIndex = this.commandListeners.findIndex(
+    const foundIndex = this.signalListeners.findIndex(
       item => item.listener === listener && item.event === command,
     );
 
     if (foundIndex > -1) {
-      this.commandListeners.splice(foundIndex, 1);
+      this.signalListeners.splice(foundIndex, 1);
     }
   };
 }

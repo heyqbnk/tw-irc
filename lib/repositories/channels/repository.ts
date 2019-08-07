@@ -1,104 +1,84 @@
-import { Client } from '../../client';
 import {
-  IChannelsRepository, IModeController,
-  TChannelCommand,
+  IChannelsRepository,
+  IFollowersOnlyOptions,
+  IMarkerOptions,
+  IPlayCommercialOptions,
   TTargetedCommand,
 } from './types';
 import { ESignal } from '../../types';
+import { Socket } from '../../socket';
+import { SharedRepository } from '../../types/shared-repository';
 
-class ChannelsRepository implements IChannelsRepository {
-  private readonly client: Client;
+export class ChannelsRepository extends SharedRepository<string>
+  implements IChannelsRepository {
+  private readonly socket: Socket;
 
-  public constructor(client: Client) {
-    this.client = client;
+  public constructor(socket: Socket) {
+    super();
+    this.socket = socket;
   }
 
-  /**
-   * Channel-oriented commands generator.
-   * @param {string} command
-   * @returns {TChannelCommand}
-   */
-  private channelCommand = (command: string): TChannelCommand => {
-    return channel => this.client.say(command, channel);
-  };
-
-  /**
-   * Mode-oriented commands generator.
-   * @param {string} mode
-   * @returns {{off: (channel?: string) => void;
-   * on: (channel?: string) => void}}
-   */
-  private channelMode = (mode: string): IModeController => ({
-    enable: (channel?: string) => this.client.say(mode, channel),
-    disable: (channel?: string) => this.client.say(`${mode}off`, channel),
-  });
-
   public join = (channel: string) => {
-    this.client.utils.sendSignal(ESignal.Join, { channel });
+    this.socket.send(`${ESignal.Join} #${channel}`);
   };
 
-  public leave = (channel: string) => {
-    this.client.utils.sendSignal(ESignal.Leave, { channel });
+  public say = (message: string, channel?: string) => {
+    if (!channel && !this.assignedPlace) {
+      throw new Error(
+        'Cannot send message due to channel is not ' +
+        'passed. Use assign() to assign channel to client, or pass ' +
+        'channel directly',
+      );
+    }
+    const targetChannel = channel || this.assignedPlace;
+    this.socket.send(`${ESignal.Message} #${targetChannel} :${message}`);
   };
-
-  public emoteOnly = this.channelMode('/emoteonly');
 
   public followersOnly = {
-    ...this.channelMode('/followers'),
-    enable: (durationInMinutes?: number, channel?: string) => {
-      const message = '/followers'
-        + (durationInMinutes ? ` ${durationInMinutes}` : '');
+    ...this.createModeController('/followers'),
+    enable: (options: IFollowersOnlyOptions = {}) => {
+      const { duration, channel } = options;
+      const message = '/followers' + (duration ? ` ${duration}` : '');
 
-      this.client.say(message, channel);
+      this.say(message, channel);
     },
   };
 
-  public r9k = this.channelMode('/r9kbeta');
-
-  public slowmode = {
-    ...this.channelMode('/slow'),
-    enable: (durationInSeconds?: number, channel?: string) => {
-      const message = '/slow'
-        + (durationInSeconds ? ` ${durationInSeconds}` : '');
-
-      this.client.say(message, channel);
-    },
+  public deleteMessage = (id: string, channel?: string) => {
+    this.say(`/delete ${id}`, channel);
   };
 
-  public deleteMessage = (msgId: string, channel?: string) => {
-    this.client.say(`/delete ${msgId}`, channel);
-  };
+  public playCommercial = (options: IPlayCommercialOptions = {}) => {
+    const { duration, channel } = options;
 
-  public playCommercial = (durationInSeconds: number, channel?: string) => {
-    this.client.say(`/commercial ${durationInSeconds}`, channel);
-  };
+    if (duration && duration < 0) {
+      throw new Error('Duration must be more than 0');
+    }
 
-  public clearChat = this.channelCommand('/clear');
+    const message = '/commercial' + (duration ? ` ${duration}` : '');
+    this.say(message, channel);
+  };
 
   public host: TTargetedCommand = (targetChannel, channel?) => {
-    this.client.say(`/host ${targetChannel}`, channel);
+    this.say(`/host ${targetChannel}`, channel);
   };
-
-  public unhost = this.channelCommand('/unhost');
+  public unhost = this.createChannelCommand('/unhost');
 
   public raid: TTargetedCommand = (targetChannel, channel?) => {
-    this.client.say(`/raid ${targetChannel}`, channel);
+    this.say(`/raid ${targetChannel}`, channel);
   };
+  public unraid = this.createChannelCommand('/unraid');
 
-  public unraid = this.channelCommand('/unraid');
+  public marker = (options: IMarkerOptions = {}) => {
+    const { comment, channel } = options;
 
-  public marker = (comment?: string, channel?: string) => {
     const message = '/marker' + (comment ? ` ${comment}` : '');
-    this.client.say(message, channel);
+    this.say(message, channel);
   };
 
-  public me = (action: string, channel?: string) => {
-    this.client.say(`/me ${action}`, channel);
-  };
+  public mod = this.createUserCommand('/mod');
+  public unmod = this.createUserCommand('/unmod');
 
-  public changeColor = (color: string, channel?: string) => {
-    this.client.say(`/color ${color}`, channel);
-  };
+  public vip = this.createUserCommand('/vip');
+  public unvip = this.createUserCommand('/unvip');
 }
-
-export { ChannelsRepository };

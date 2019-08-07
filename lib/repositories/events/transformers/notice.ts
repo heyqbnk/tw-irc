@@ -1,11 +1,11 @@
 import { IEventParams, INoticeMeta, TEventTransformersMap } from '../types';
 import { ESignal } from '../../../types';
-import { getChannel } from '../utils';
+import { getPlaceData } from '../utils';
 
 export const noticeTransformer: TEventTransformersMap[ESignal.Notice] =
   (_, message) => {
     const result = {
-      channel: getChannel(message),
+      ...getPlaceData(message),
       message: message.data,
       raw: message.raw,
     } as IEventParams[ESignal.Notice];

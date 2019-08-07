@@ -40,6 +40,21 @@ describe('repositories', () => {
             raw: message.raw,
           });
         });
+
+        it('should return field room: { channelId: string, roomUuid: string } ' +
+          'if first parameter is "#chatrooms"', () => {
+          const message = getMessage({
+            parameters: ['#chatrooms'],
+            data: '1:2',
+          });
+
+          expect(noticeTransformer('', message)).toEqual(expect.objectContaining({
+            room: {
+              channelId: '1',
+              roomUuid: '2',
+            },
+          }));
+        });
       });
     });
   });

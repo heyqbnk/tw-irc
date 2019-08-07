@@ -12,7 +12,7 @@ describe('repositories', () => {
           const message = getMessage({
             parameters: ['#justintv'],
             prefix: {
-              user: 'shaker'
+              user: 'shaker',
             } as IPrefix,
             raw: 'raw',
           });
@@ -29,7 +29,7 @@ describe('repositories', () => {
           const message = getMessage({
             parameters: ['#justintv'],
             prefix: {
-              user: 'shaker'
+              user: 'shaker',
             } as IPrefix,
             raw: 'raw',
           });
@@ -40,6 +40,21 @@ describe('repositories', () => {
             isSelf: true,
             raw: message.raw,
           });
+        });
+
+        it('should return field room: { channelId: string, roomUuid: string } ' +
+          'if first parameter is "#chatrooms"', () => {
+          const message = getMessage({
+            parameters: ['#chatrooms'],
+            data: '1:2',
+          });
+
+          expect(joinTransformer('', message)).toEqual(expect.objectContaining({
+            room: {
+              channelId: '1',
+              roomUuid: '2',
+            },
+          }));
         });
       });
     });

@@ -32,7 +32,7 @@ describe('repositories', () => {
       });
 
       describe('getPlaceData', () => {
-        it('should object { channelId: string, roomUuid: string } if ' +
+        it('should return object { room: { channelId: string, roomUuid: string } } if ' +
           'channel is "chatrooms"', () => {
           const message = {
             parameters: ['#chatrooms'],
@@ -40,15 +40,19 @@ describe('repositories', () => {
           } as IParsedIRCMessage;
 
           expect(getPlaceData(message)).toEqual({
-            channelId: '9222',
-            roomUuid: 'abc',
+            room: {
+              channelId: '9222',
+              roomUuid: 'abc',
+            },
           });
         });
 
-        it('should return string if channel is not "chatrooms"', () => {
+        it('should return object { channel: string } if channel is not "chatrooms"', () => {
           const message = { parameters: ['#justintv'] } as IParsedIRCMessage;
 
-          expect(getPlaceData(message)).toEqual(message.parameters[0].slice(1));
+          expect(getPlaceData(message)).toEqual({
+            channel: message.parameters[0].slice(1),
+          });
         });
       });
 

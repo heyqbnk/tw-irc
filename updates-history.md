@@ -1,4 +1,45 @@
 # Updates history
+### Release 3.0.0
+`WARNING: BREAKING CHANGES`
+
+It is the latest big release. All the other fixes will be connected with
+bug fixes or small changes. It looks like the library is done and now I am 
+focusing on new one for New Twitch API.
+
+#### Client
+- `client.connect()` now returns a `Promise`, which will be resolved when
+socket connection is successfully opened.
+- `client.on()` now throws an error if passed event is not observable.
+- `client.say()` was moved to `client.channels`.
+- `client.assignRoom()` was added.
+
+#### Channels
+- `leave(channel: string)` was replaced with `disconnect(channel: string)`.
+- `followerOnly()` now accepts *optional* object 
+`{ duration?: string, channel?: string }`.
+- `slowmode()` now accepts *optional* object 
+`{ duration?: number, channel?: string }`.
+- `slowmode()` now throws an error if `duration` is less than `0`.
+- `playCommercial()` now accepts *optional* object 
+`{ duration?: number, channel?: string }`.
+- `playCommercial()` now throws an error if `duration` is less than `0`.
+- `marker()` now accepts *optional* object 
+`{ comment?: string, channel?: string }`.
+- `clearChat()` was replaced with `clear()`.
+
+#### Events
+- `Join`, `Message`, `Notice`, `RoomState`, `UserState` listeners now return
+parameter `channel` or `room` depending on where event occurred.
+
+#### Users
+Repository was removed from client.
+
+#### Rooms
+Repository was added to client. Its instance is available in `client.rooms`. 
+
+#### Other
+Added `client.rooms` docs.
+
 ### Release 2.0.0
 `WARNING: BREAKING CHANGES`
 

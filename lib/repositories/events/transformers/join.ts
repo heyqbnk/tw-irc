@@ -11,11 +11,10 @@ import { getPlaceData, getPrefixUser } from '../utils';
  */
 export const joinTransformer: TEventTransformersMap[ESignal.Join] =
   (login, message) => {
-    const place = getPlaceData(message);
     const joinedUser = getPrefixUser(message);
 
     return {
-      channel: place,
+      ...getPlaceData(message),
       joinedUser,
       isSelf: joinedUser === login,
       raw: message.raw,

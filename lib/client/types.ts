@@ -1,10 +1,12 @@
 import { Socket } from '../socket';
 
 import { ChannelsRepository } from '../repositories/channels';
-import { UsersRepository } from '../repositories/users';
-import { UtilsRepository } from '../repositories/utils';
+import { RoomsRepository } from '../repositories/rooms';
 
-import { TObservableSignals, TSignalListenersMap } from '../repositories/events';
+import {
+  TObservableSignals,
+  TSignalListenersMap,
+} from '../repositories/events';
 
 interface IAuthInfo {
   login: string;
@@ -38,22 +40,17 @@ interface IClient {
   /**
    * Repository to communicate with users.
    */
-  users: UsersRepository;
-
-  /**
-   * Repository containing some useful methods.
-   */
-  utils: UtilsRepository;
+  rooms: RoomsRepository;
 
   /**
    * Create a client connection to IRC.
    */
-  connect(): void;
+  connect(): Promise<void>;
 
   /**
    * Disconnects web socket.
    */
-  disconnect(): void;
+  disconnect();
 
   /**
    * Shortcut to commands events binding. Make listener call when command
@@ -70,14 +67,13 @@ interface IClient {
    * Binds this client to passed channel.
    * @param {string} channel
    */
-  assignChannel(channel: string): void;
+  assignChannel(channel: string);
 
   /**
-   * Says a message to channel.
-   * @param {string} message
-   * @param {string} channel
+   * Binds this client to passed room.
+   * @param room
    */
-  say(message: string, channel?: string): void;
+  assignRoom(room: { channelId: string, roomUuid: string });
 }
 
 export { IAuthInfo, IClientConstructorProps, IClient, TListeningManipulator };

@@ -2,7 +2,7 @@ import { Socket } from '../socket';
 import { ESignal } from '../../types';
 import { ESocketReadyState } from '../types';
 import { mockWebSocket, MockWebSocket } from '../../__mocks__/websocket';
-import { IAuthData } from '../types';
+import { mkSocket } from '../../__mocks__/socket';
 
 mockWebSocket();
 
@@ -204,15 +204,6 @@ describe('socket', () => {
     });
   });
 });
-
-function mkSocket(props: { auth?: IAuthData, secure?: boolean } = {}): Socket {
-  const {
-    auth = { login: '', password: '' },
-    secure = false,
-  } = props;
-
-  return new Socket({ auth, secure });
-}
 
 function getSocket(socket: Socket): WebSocket | undefined {
   return (socket as any).socket;

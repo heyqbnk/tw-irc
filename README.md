@@ -182,9 +182,17 @@ type TObservableSignals =
   | ESignal.UserNotice
   | ESignal.UserState;  
 ```  
+
+#### Other
+```typescript
+interface IRoom {
+  channelId: string;
+  roomUuid: string;
+}
+```
   
 ### Client  
-#### `Function:` `new Client()`  
+#### `Constructor:` `new Client()`  
 Without parameters:  
 ```typescript  
 const client = new Client();  
@@ -216,7 +224,7 @@ client.connect();
   
 #### `Function:` `disconnect()`  
 Calls `disconnect` method of `Socket` instance created internally, what means `WebSocket` will be closed.  
-> **Notification**: It does not mean, that all your bound events will be automatically removed. All bound events are stashed inside `Socket` instance which is wrapper around `WebSocket`. So, if you call `disconnect()` and then `connect()`, all previously bound event listeners will still work and you dont have to bind them again.  
+> **NOTE**: It does not mean, that all your bound events will be automatically removed. All bound events are stashed inside `Socket` instance which is wrapper around `WebSocket`. So, if you call `disconnect()` and then `connect()`, all previously bound event listeners will still work and you dont have to bind them again.  
 
 ```typescript  
 // Disconnect from IRC  
@@ -256,7 +264,9 @@ client.off(ESignal.Message, listener);
 ```  
   
 #### `Function:` `assignChannel(channel)`  
-Assigns channel to client. As a result, you will have no need to always set `channel` in commands like `client.say`, `client.users.ban()` and other. Channel will be automatically taken from `client`.  
+Assigns channel to client. As a result, you will have no need to always set 
+`channel` in commands like `client.channels.timeout()`, `client.channels.ban()`
+and other. Channel will be automatically taken from `client.channels`.  
   
 | Argument | Type | Description |  
 | --- | --- | --- |  
@@ -266,41 +276,309 @@ Assigns channel to client. As a result, you will have no need to always set `cha
 // Bind channel "sodapoppin" to client.  
 client.assignChannel('sodapoppin');  
 ```  
-  
-#### `Function:` `say(message, channel?)`  
-Says message in channel.  
+
+#### `Function:` `assignRoom(room)`  
+Assigns room to client. As a result, you will have no need to always set 
+`room` in commands like `client.rooms.timeout()`, `client.rooms.ban()`
+and other. Room will be automatically taken from `client.rooms`.  
   
 | Argument | Type | Description |  
 | --- | --- | --- |  
-| `message` | `string` | Message to say |  
-| `channel` | `string`, `optional` | Target channel to say message |  
+| `room` | `IRoom` | Room to assign to client |  
+  
+```typescript    
+client.assignRoom({ clientId: '2315', roomUuid: 'ds-a021kss' });  
+```
+
+### `Namespace:` `client.rooms`
+This namespace is responsible for actions connected with rooms.
+
+#### `Function:` `join(room)`  
+Join some room. To receive messages from channel, it is required to use this method.
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `room` | `IRoom` | Target room |  
   
 ```typescript  
-// Say something in channel "sodapoppin"  
-client.say('Hello soda!', 'sodapoppin');  
+client.rooms.join({ clientId: '2315', roomUuid: 'ds-a021kss' });  
+```
+
+#### `Function:` `say(message, room?)`  
+Say message in room.
   
-// Alternatively  
-client.assignChannel('sodapoppin');  
-client.say('Hello soda!');  
+| Argument | Type | Description |  
+| --- | --- | --- |
+| `message` | `string` | Message to say |  
+| `room?` | `IRoom?` | Target room |  
+  
+```typescript    
+client.rooms.say('Hey soda!', { clientId: '2315', roomUuid: 'ds-a021kss' });
 ```  
-  
-### `Namespace: client.users`  
-This field is responsible for actions connected with users directly, like `ban`,
-`timeout` and other.  
-  
-#### `Function:` `ban(user, channel?)` and `unban(user, channel?)`  
+
+#### `Function:` `ban(user, room?)` and `unban(user, room?)`  
 Permanently prevent a user from chatting.  
   
 | Argument | Type | Description |  
 | --- | --- | --- |  
 | `user` | `string` | Target user |  
-| `channel` | `string`, `optional` | Target channel |  
+| `room?` | `IRoom?` | Target room |  
+  
+```typescript    
+client.rooms.ban('justin', { clientId: '2315', roomUuid: 'ds-a021kss' });  
+client.rooms.unban('justin', { clientId: '2315', roomUuid: 'ds-a021kss' });  
+``` 
+
+#### `Function:` `timeout(options)`  
+Temporarily prevent a user from chatting. Duration (optional, default=10 minutes) must be a positive integer; time unit (optional, default=s) must be one of s, m, h, d, w; maximum duration is 2 weeks. Combinations like 1d2h are also allowed. Reason is optional and will be shown to the target user and other moderators.  
+  
+| Argument | Type | Description |  
+| --- | --- | ---  |  
+| `options.user` | `string` | Target user |  
+| `options.duration?` | `string?` | Timeout duration |  
+| `options.reason?` | `string?` | Reason, why user was given a timeout |  
+| `options.place?` | `IRoom?` | Target room |  
   
 ```typescript  
-// Ban and unban user "justin" in "sodapoppin" channel  
-client.users.ban('justin', 'sodapoppin');  
-client.users.unban('justin', 'sodapoppin');  
+client.rooms.timeout('justin', '20m', 'Bullying', { clientId: '2315', roomUuid: 'ds-a021kss' });  
+```   
+
+#### `Function:` `untimeout(user, room?)`  
+Removes a timeout on a user.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `user` | `string` | Target user |  
+| `room?` | `IRoom?` | Target room |  
+  
+```typescript    
+client.rooms.untimeout('justin', { clientId: '2315', roomUuid: 'ds-a021kss' });  
 ```  
+
+#### `Function:` `whisper(user, room?)`  
+Whispers a user.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `user` | `string` | Target user |  
+| `room?` | `IRoom?` | Target room |  
+  
+```typescript    
+client.rooms.whisper('justin', { clientId: '2315', roomUuid: 'ds-a021kss' });  
+```  
+
+#### `Function:` `emoteOnly.enable(room?)` and `emoteOnly.disable(room?)`  
+Enables emote-only mode (only emoticons may be used in chat).  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `room?` | `IRoom?` | Target room |  
+  
+```typescript    
+client.rooms.emoteOnly.enable({ clientId: '2315', roomUuid: 'ds-a021kss' });    
+client.rooms.emoteOnly.disable({ clientId: '2315', roomUuid: 'ds-a021kss' });  
+```
+
+#### `Function:` `r9k.enable(room?)` and `r9k.disable(room?)`  
+Enables / Disables  r9k mode.    
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `room?` | `IRoom?` | Target room |  
+  
+```typescript    
+client.rooms.r9k.enable({ clientId: '2315', roomUuid: 'ds-a021kss' });    
+client.rooms.r9k.disable({ clientId: '2315', roomUuid: 'ds-a021kss' });  
+```
+
+#### `Function:` `slowmode.enable(options?)`  
+Enables slow mode (limit how often users may send messages).
+Duration (optional, default=30) must be a positive number of seconds.
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `options.duration?` | `number?` | Duration |
+| `options.place?` | `IRoom?` | Target room |  
+  
+```typescript    
+client.rooms.slowmode.enable({ duration: 30, place: { clientId: '2315', roomUuid: 'ds-a021kss' } });      
+```
+
+#### `Function:` `slowmode.disable(room?)`
+Disables slow mode (limit how often users may send messages). 
+
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `room?` | `IRoom?` | Target room |  
+  
+```typescript        
+client.rooms.slowmode.disable({ clientId: '2315', roomUuid: 'ds-a021kss' });  
+```
+
+#### `Function:` `clear(room?)`  
+Clear room's chat.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `room?` | `IRoom?` | Target room |  
+  
+```typescript    
+client.rooms.clear({ clientId: '2315', roomUuid: 'ds-a021kss' });
+```  
+
+#### `Function:` `me(action, room?)`  
+Send an "emote" message in the third person.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `action` | `string` | Your action |  
+| `room?` | `IRoom?` | Target room |  
+  
+```typescript    
+client.rooms.me('just killed a demon!', { clientId: '2315', roomUuid: 'ds-a021kss' });  
+```  
+
+#### `Function:` `changeColor(color, room?)`  
+Change your username color. Color must be in hex (#000000) or one of the following: Blue, BlueViolet, CadetBlue, Chocolate, Coral, DodgerBlue, Firebrick, GoldenRod, Green, HotPink, OrangeRed, Red, SeaGreen, SpringGreen, YellowGreen.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `color` | `string` | New color |  
+| `room?` | `IRoom?` | Target room |  
+  
+```typescript  
+client.rooms.changeColor('#FF0000', { clientId: '2315', roomUuid: 'ds-a021kss' });  
+```  
+
+### `Namespace: client.channels`  
+This namespace is responsible for actions connected with channels.
+
+> **NOTE**: `client.rooms` and `client.channels` extends the same class,
+but have the only small differences. `channels` have the same methods
+as `rooms`, but instead of accepting `room`, which is `object`, they
+accept `channel`, which is `string`. These methods are not described
+in `client.channels`, but described in `client.rooms`. Wherever you see
+`place` or `room`, it is `string` meaning channel name. 
+
+#### `Function:` `disconnect(channel)`  
+Leave channel.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `channel` | `string` | Target channel |  
+  
+```typescript    
+client.rooms.disconnect('sodapoppin');
+```  
+
+#### `Function:` `followersOnly.enable(options?)`  
+Enables followers-only mode.
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `options.duration?` | `number?` | Duration |
+| `options.place?` | `string?` | Target channel |  
+  
+```typescript    
+client.rooms.followersOnly.enable({ duration: 30, place: 'sodapoppin' });      
+```
+
+#### `Function:` `followersOnly.disable(channel?)`
+Disables followers-only mode.
+
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `channel?` | `string?` | Target channel |  
+  
+```typescript        
+client.rooms.followersOnly.disable('sodapoppin');  
+```  
+
+#### `Function:` `deleteMessage(id, channel?)`  
+Deletes the specified message.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `id` | `string` | ID of message |  
+| `channel?` | `string?` | Target channel |  
+  
+```typescript    
+client.channels.deleteMessage('sja1i-3adqww-2131', 'sodapoppin');  
+```  
+  
+  
+#### `Function:` `playCommercial(options?)`  
+Triggers a commercial.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `options.duration?` | `number` | Duration in seconds |  
+| `options.channel?` | `string?` | Target channel |  
+  
+```typescript    
+client.channels.playCommercial(180, 'sodapoppin');  
+``` 
+
+#### `Function:` `host(targetChannel, channel?)`  
+Host another channel.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `targetChannel` | `string` | Target channel |  
+| `channel?` | `string?` | Hosting channel |  
+  
+```typescript    
+client.channels.raid('summit1g', 'sodapoppin');  
+```  
+  
+  
+#### `Function:` `unhost(channel?)`  
+Stop host.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `channel?` | `string?` | Hosting channel |  
+  
+```typescript    
+client.channels.unhost('sodapoppin');  
+```  
+
+#### `Function:` `raid(targetChannel, channel?)`  
+Raid another channel.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `targetChannel` | `string` | Target channel |  
+| `channel?` | `string?` | Hosting channel |  
+  
+```typescript    
+client.channels.raid('summit1g', 'sodapoppin');  
+```  
+  
+  
+#### `Function:` `unraid(channel?)`  
+Stop raid.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `channel?` | `string?` | Hosting channel |  
+  
+```typescript  
+client.channels.unraid('sodapoppin');  
+```  
+
+#### `Function:` `marker(options?)`  
+Adds a stream marker (with an optional comment, max 140 characters) at the current timestamp. You can use markers in the Highlighter for easier editing.  
+  
+| Argument | Type | Description |  
+| --- | --- | --- |  
+| `options.comment?` | `string?` | Marker comment |  
+| `options.channel?` | `string?` | Target channel |  
+  
+```typescript    
+client.channels.marker('Nice highlight!', 'sodapoppin');  
+```  
+  
   
 #### `Function:` `mod(user, channel?)` and `unmod(user, channel?)`  
 Grant / revoke moderator status to / from a user.  
@@ -308,13 +586,13 @@ Grant / revoke moderator status to / from a user.
 | Argument | Type | Description |  
 | --- | --- | --- |  
 | `user` | `string` | Target user |  
-| `channel` | `string`, `optional` | Target channel |  
+| `channel?` | `string?` | Target channel |  
   
-```typescript  
-// Mod and unmod user "justin" in "sodapoppin" channel  
-client.users.mod('justin', 'sodapoppin');  
-client.users.unmod('justin', 'sodapoppin');  
+```typescript    
+client.channels.mod('justin', 'sodapoppin');  
+client.channels.unmod('justin', 'sodapoppin');  
 ```  
+  
   
 #### `Function:` `vip(user, channel?)` and `unvip(user, channel?)`  
 Grant / revoke VIP status to / from a user.  
@@ -322,269 +600,9 @@ Grant / revoke VIP status to / from a user.
 | Argument | Type | Description |  
 | --- | --- | --- |  
 | `user` | `string` | Target user |  
-| `channel` | `string`, `optional` | Target channel |  
+| `channel?` | `string?` | Target channel |  
   
-```typescript  
-// Vip and unvip user "justin" in "sodapoppin" channel  
-client.users.vip('justin', 'sodapoppin');  
-client.users.unvip('justin', 'sodapoppin');  
+```typescript    
+client.channels.vip('justin', 'sodapoppin');  
+client.channels.unvip('justin', 'sodapoppin');  
 ```  
-  
-#### `Function:` `timeout(user, duration = '10m', reason?, channel?)`  
-> **WARNING**: Will be reworked in 3.0.0
-
-Temporarily prevent a user from chatting. Duration (optional, default=10 minutes) must be a positive integer; time unit (optional, default=s) must be one of s, m, h, d, w; maximum duration is 2 weeks. Combinations like 1d2h are also allowed. Reason is optional and will be shown to the target user and other moderators.  
-  
-| Argument | Type | Default value | Description |  
-| --- | --- | --- | --- |  
-| `user` | `string` | `-` | Target user |  
-| `duration` | `string`, `optional` | `"10m"` | Timeout duration |  
-| `reason` | `string`, `optional` | `-` | Reason, why user was given a timeout |  
-| `channel` | `string`, `optional` | `-` | Target channel |  
-  
-```typescript  
-// Give user "justin" in "sodapoppin" channel a timeout for 20 minutes with  
-// reason "Bullying"  
-client.users.timeout('justin', '20m', 'Bullying', 'sodapoppin');  
-```  
-  
-#### `Function:` `untimeout(user, channel?)`  
-Removes a timeout on a user.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `user` | `string` | Target user |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Untimeout user "justin" in "sodapoppin" channel  
-client.users.untimeout('justin', 'sodapoppin');  
-```  
-  
-#### `Function:` `whisper(user, channel?)`  
-Whispers a user.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `user` | `string` | Target user |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Whisper user "justin" in "sodapoppin" channel  
-client.users.whisper('justin', 'sodapoppin');  
-```  
-  
-### `Namespace: client.channels`  
-This field is responsible for actions connected with channels.  
-  
-#### `Function:` `join(channel)`  
-Join some channel. To receive messages from channel, it is required to use this method.
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `channel` | `string` | Target channel |  
-  
-```typescript  
-// Join "sodapoppin" channel  
-client.channels.join('sodapoppin');  
-```  
-  
-#### `Function:` `leave(channel)`  
-Leave channel.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `channel` | `string` | Target channel |  
-  
-```typescript  
-// Leave "sodapoppin" channel  
-client.channels.leave('sodapoppin');  
-```  
-  
-#### `Function:` `changeColor(color, channel?)`  
-Change your username color. Color must be in hex (#000000) or one of the following: Blue, BlueViolet, CadetBlue, Chocolate, Coral, DodgerBlue, Firebrick, GoldenRod, Green, HotPink, OrangeRed, Red, SeaGreen, SpringGreen, YellowGreen.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `color` | `string` | New color |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Leave "sodapoppin" channel  
-client.channels.changeColor('#FF0000', 'sodapoppin');  
-```  
-  
-#### `Function:` `me(action, channel?)`  
-Send an "emote" message in the third person.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `action` | `string` | Your action |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Will send a message which will look like "{client.login} just killed a demon!" in chat  
-client.channels.me('just killed a demon!', 'sodapoppin');  
-```  
-  
-#### `Function:` `marker(comment?, channel?)`  
-Adds a stream marker (with an optional comment, max 140 characters) at the current timestamp. You can use markers in the Highlighter for easier editing.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `action` | `string`, `optional` | Your action |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Creates a marker with comment "Nice highlight!" in channel "sodapoppin"  
-client.channels.marker('Nice highlight!', 'sodapoppin');  
-```  
-  
-#### `Function:` `raid(targetChannel, channel?)`  
-Raid another channel.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `targetChannel` | `string` | Target channel |  
-| `channel` | `string`, `optional` | Hosting channel |  
-  
-```typescript  
-// Raid channel "summit1g" from channel "sodapoppin"  
-client.channels.raid('summit1g', 'sodapoppin');  
-```  
-  
-#### `Function:` `unraid(channel?)`  
-Stop raid.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `channel` | `string`, `optional` | Hosting channel |  
-  
-```typescript  
-// Stop raid from channel "sodapoppin"  
-client.channels.unraid('sodapoppin');  
-```  
-  
-  
-#### `Function:` `host(targetChannel, channel?)`  
-Host another channel.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `targetChannel` | `string` | Target channel |  
-| `channel` | `string`, `optional` | Hosting channel |  
-  
-```typescript  
-// Host channel "summit1g" from channel "sodapoppin"  
-client.channels.raid('summit1g', 'sodapoppin');  
-```  
-  
-#### `Function:` `unhost(channel?)`  
-Stop host.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `channel` | `string`, `optional` | Hosting channel |  
-  
-```typescript  
-// Stop host from channel "sodapoppin"  
-client.channels.unhost('sodapoppin');  
-```  
-  
-#### `Function:` `clearChat(channel?)`  
-Clear chat.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Clear chat in channel "sodapoppin"  
-client.channels.clearChat('sodapoppin');  
-```  
-  
-#### `Function:` `playCommercial(durationInSeconds, channel?)`  
-Triggers a commercial. Length (optional) must be a positive number of seconds.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `durationInSeconds` | `number` | Duration in seconds |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Run commercial in channel "sodapoppin" for 180 seconds  
-client.channels.playCommercial(180, 'sodapoppin');  
-```  
-  
-#### `Function:` `deleteMessage(msgId, channel?)`  
-Deletes the specified message.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `msgId` | `string` | ID of message |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Delete message with id "sja1i-3adqww-2131" from channel "sodapoppin"  
-client.channels.deleteMessage('sja1i-3adqww-2131', 'sodapoppin');  
-```  
-  
-#### `Function:` `slowmode.enable(durationInSeconds, channel?)` and `slowmode.disable(channel?)`  
-Enables / Disables slow mode (limit how often users may send messages). Duration (optional, default=30) must be a positive number of seconds.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `durationInSeconds` | `number` | Duration in seconds |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Sets slowmode with 180 seconds in channel "sodapoppin"  
-client.channels.slowmode.enable(180, 'sodapoppin');  
-// Disable slowmode  
-client.channels.slowmode.disable('sodapoppin');  
-```  
-  
-#### `Function:` `r9k.enable(channel?)` and `r9k.disable(channel?)`  
-Enables / Disables  r9k mode.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Sets r9k mode in channel "sodapoppin"  
-client.channels.r9k.enable('sodapoppin');  
-// Disable r9k mode  
-client.channels.r9k.disable('sodapoppin');  
-```  
-  
-  
-#### `Function:` `followersOnly.enable(durationInMinutes, channel?)` and `followersOnly.disable(channel?)`  
-Enables followers-only mode (only users who have followed for 'duration' may chat). Must be less than 3 months.  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `durationInMinutes` | `number` | Duration in minutes |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Sets followers-only mode with 180 minutes minimal time following  
-// in channel "sodapoppin"  
-client.channels.followersOnly.enable(180, 'sodapoppin');  
-// Disable followers-only mode  
-client.channels.followersOnly.disable('sodapoppin');  
-```  
-  
-#### `Function:` `emoteOnly.enable(channel?)` and `emoteOnly.disable(channel?)`  
-Enables emote-only mode (only emoticons may be used in chat).  
-  
-| Argument | Type | Description |  
-| --- | --- | --- |  
-| `channel` | `string`, `optional` | Target channel |  
-  
-```typescript  
-// Sets emote-only mode in channel "sodapoppin"  
-client.channels.emoteOnly.enable('sodapoppin');  
-// Disables emote-only mode  
-client.channels.emoteOnly.disable('sodapoppin');  
-```

@@ -4,7 +4,7 @@ import { EventsRepository } from '../repository';
 import { Socket } from '../../../socket';
 import { ESignal } from '../../../types';
 import { mockWebSocket } from '../../../__mocks__/websocket';
-import { IAuthData } from '../../../socket/types';
+import { mkSocket } from '../../../__mocks__/socket';
 
 mockWebSocket();
 
@@ -12,10 +12,8 @@ describe('repositories', () => {
   describe('events', () => {
     describe('utils', () => {
       describe('repository', () => {
-        it(
-          'should bind listener on "message" event to socket when ' +
-          'repo is being initialized',
-          () => {
+        it('should bind listener on "message" event to socket when ' +
+          'repo is being initialized', () => {
             const socket = mkSocket();
             const onSpy = jest.spyOn(socket, 'on');
             const repo = mkEventsRepository({ socket });
@@ -27,10 +25,8 @@ describe('repositories', () => {
           },
         );
 
-        it(
-          'should parse message, when there is some message came from' +
-          'socket connection',
-          () => {
+        it('should parse message, when there is some message came from socket ' +
+          'connection', () => {
             const parseSpy = jest.spyOn(utils, 'parseIRCMessage');
             const socket = mkSocket();
             const message = ':jtv!jtv@jtv.tmi.js 999 :Some message';
@@ -47,10 +43,8 @@ describe('repositories', () => {
           },
         );
 
-        it(
-          'should call listeners associated with command if message command ' +
-          'is equal to theirs',
-          () => {
+        it('should call listeners associated with command if message command ' +
+          'is equal to theirs', () => {
             const socket = mkSocket();
             const repo = mkEventsRepository({ socket });
             const channel = 'justintv';
@@ -73,10 +67,17 @@ describe('repositories', () => {
           },
         );
 
-        it(
-          'should not call any listeners in case message command doesn\'t ' +
-          'compare with theirs',
-          () => {
+        describe('on', () => {
+          it('should throw an error if passed signal is not observable', () => {
+            const socket = mkSocket();
+            const repo = mkEventsRepository({ socket });
+
+            expect(() => (repo as any).on(ESignal.CapabilityRequest, jest.fn)).toThrow();
+          });
+        });
+
+        it('should not call any listeners in case message command doesn\'t ' +
+          'compare with theirs', () => {
             const socket = mkSocket();
             const repo = mkEventsRepository({ socket });
             const rawMessage = 'PING :some-host.com';
@@ -141,15 +142,6 @@ describe('repositories', () => {
 
 function emitEvent(socket: Socket, event: Event) {
   (socket as any).socket.dispatchEvent(event);
-}
-
-function mkSocket(props: { auth?: IAuthData, secure?: boolean } = {}): Socket {
-  const {
-    auth = { login: '', password: '' },
-    secure = false,
-  } = props;
-
-  return new Socket({ auth, secure });
 }
 
 function mkEventsRepository(props: { socket?: Socket, login?: string } = {}) {

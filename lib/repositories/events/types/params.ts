@@ -4,9 +4,17 @@ import {
   IGlobalUserStateMetaPrepared,
   IMessageMetaPrepared,
   IRoomStateMeta,
-  IUserNoticeMetaPrepared,
+  IUserNoticeMetaPrepared, IUserStateMetaPrepared,
 } from './meta';
-import { TPlace } from './utils';
+
+interface IRoom {
+  channelId: string;
+  roomUuid: string;
+}
+
+type TRoomable<Params> = Params
+  & ICoreEventsParams
+  & ({ channel: string } | { room: IRoom });
 
 interface ICoreEventsParams {
   raw: string;
@@ -14,10 +22,6 @@ interface ICoreEventsParams {
 
 interface IDefaultChannelEventParams extends ICoreEventsParams {
   channel: string;
-}
-
-interface IDefaultRoomEventParams extends ICoreEventsParams {
-  channel: TPlace;
 }
 
 // CLEARCHAT
@@ -62,16 +66,16 @@ export interface IHostStopEventParams extends ICoreEventsParams {
 export type THostEventParams = IHostStartEventParams | IHostStopEventParams;
 
 // JOIN
-interface IJoinEventParams extends IDefaultRoomEventParams {
+type TJoinEventParams = TRoomable<{
   joinedUser: string;
   isSelf: boolean;
-}
+}>;
 
 // NOTICE
-interface INoticeEventParams extends IDefaultChannelEventParams {
+type TNoticeEventParams = TRoomable<{
   messageId?: EUserNoticeMessageId;
   message: string;
-}
+}>;
 
 // PART
 interface ILeaveEventParams extends IDefaultChannelEventParams {
@@ -79,18 +83,15 @@ interface ILeaveEventParams extends IDefaultChannelEventParams {
 }
 
 // PRIVMSG
-interface IMessageEventParams
-  extends IDefaultChannelEventParams, IMessageMetaPrepared {
+type TMessageEventParams = TRoomable<{
   message: string;
   author: string;
   timestamp: number;
   isSelf: boolean;
-}
+} & IMessageMetaPrepared>;
 
 // ROOMSTATE
-interface IRoomStateEventParams
-  extends IDefaultChannelEventParams, IRoomStateMeta {
-}
+type TRoomStateEventParams = TRoomable<IRoomStateMeta>;
 
 // USERNOTICE
 interface IUserNoticeEventParams
@@ -102,20 +103,19 @@ interface IUserNoticeEventParams
 }
 
 // USERSTATE
-interface IUserStateEventParams extends IDefaultRoomEventParams {
-}
+type TUserStateEventParams = TRoomable<IUserStateMetaPrepared>;
 
 export interface IEventParams {
   [ESignal.ClearChat]: TClearChatEventParams;
   [ESignal.ClearMessage]: IClearMessageEventParams;
   [ESignal.GlobalUserState]: IGlobalUserStateEventParams;
   [ESignal.Host]: THostEventParams;
-  [ESignal.Join]: IJoinEventParams;
+  [ESignal.Join]: TJoinEventParams;
   [ESignal.Leave]: ILeaveEventParams;
-  [ESignal.Message]: IMessageEventParams;
-  [ESignal.Notice]: INoticeEventParams;
+  [ESignal.Message]: TMessageEventParams;
+  [ESignal.Notice]: TNoticeEventParams;
   [ESignal.Reconnect]: void;
-  [ESignal.RoomState]: IRoomStateEventParams;
+  [ESignal.RoomState]: TRoomStateEventParams;
   [ESignal.UserNotice]: IUserNoticeEventParams;
-  [ESignal.UserState]: IUserStateEventParams;
+  [ESignal.UserState]: TUserStateEventParams;
 }

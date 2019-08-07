@@ -36,7 +36,7 @@ export const userStateTransformer: TEventTransformersMap[ESignal.UserState] =
 
     return {
       ...meta,
-      channel: getPlaceData(message),
+      ...getPlaceData(message),
       raw: message.raw,
     };
   };
