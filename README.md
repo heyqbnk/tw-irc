@@ -4,6 +4,13 @@ Here is a library that handles connection to Twitch IRC. It allows you to join o
 
 We expect, you are using TypeScript, because some error protection mechanisms inside this library are based on TypeScript typings restrictions.
 
+## Features
+This library will be useful, if you want to:
+- Send messages via chat
+- Detect all the events sent from IRC (messages, joins, leaves, bans, notices and other)
+- Take full control over rooms
+- Create your own bot
+
 ## Documentation
 ### Create client
 Library contains a client, that connects to Twitch IRC. Here is an example to create an instance of this client:
