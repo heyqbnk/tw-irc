@@ -48,7 +48,7 @@ was called. This method just remembers passed channel.
   
 ```typescript
 // Previously, we have to call command with:
-client.channels.emoteOnly.on('summit1g');
+client.channels.emoteOnly.enable('summit1g');
   
 // But we can remember the channel, to shorten command calls. After channel
 // bind, all commands without passed channel will take last assigned channel.
