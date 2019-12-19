@@ -23,8 +23,7 @@
     "outDir": "./dist"
   },
   "include": [
-    "lib",
-    "example"
+    "lib"
   ],
   "exclude": [
     "node_modules",
