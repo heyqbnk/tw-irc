@@ -1,7 +1,7 @@
-import { ESignal } from './irc';
+import {ESignal} from './irc';
 
-export type TMetaValue = string | number | IBadge | IEmote
-  | Array<string | number | IBadge | IEmote>;
+export type TMetaValue = string | number | IBadge | IEmote | IFlag
+  | Array<string | number | IBadge | IEmote | IFlag>;
 
 export interface IMeta extends Record<string, TMetaValue | null> {
 }
@@ -22,7 +22,12 @@ export interface IBadge {
 
 export interface IEmote {
   emoteId: number;
-  ranges: Array<{ from: number; to: number }>;
+  ranges: Array<{from: number; to: number}>;
+}
+
+export interface IFlag {
+  labels: Array<{letter: string; number: number}>;
+  range: {from: number; to: number};
 }
 
 export interface IPrefix {

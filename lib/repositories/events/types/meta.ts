@@ -1,4 +1,4 @@
-import { IBadge, IEmote } from '../../../types';
+import {IBadge, IEmote, IFlag} from '../../../types';
 
 type TPseudoBoolean = 0 | 1;
 type TUserType = null | 'mod' | 'global_mod' | 'admin' | 'staff';
@@ -60,7 +60,7 @@ export interface IMessageMeta {
   color: string | null;
   displayName: string | null;
   emotes: IEmote | IEmote[] | null;
-  flags: any[] | null; // TODO: NOT_DOCUMENTED
+  flags: IFlag[] | null;
   id: string;
   roomId: string;
   tmiSentTs: number;
@@ -74,6 +74,7 @@ export interface IMessageMeta {
 export interface IMessageMetaPrepared extends TPickedMessageMeta {
   badges: IBadge[];
   emotes: IEmote[];
+  flags: IFlag[];
 }
 
 // ROOMSTATE
@@ -125,7 +126,7 @@ export interface IUserNoticeMeta {
   color: string | null;
   displayName: string | null;
   emotes: IEmote | IEmote[] | null;
-  flags: any[] | null; // TODO: NOT_DOCUMENTED
+  flags: IFlag[] | null;
   id: string;
   roomId: string;
   tmiSentTs: number;
@@ -142,6 +143,7 @@ export interface IUserNoticeMeta {
 export interface IUserNoticeMetaPrepared extends TPickedUserNoticeMeta {
   badges: IBadge[];
   emotes: IEmote[];
+  flags: IFlag[];
 }
 
 // USERSTATE

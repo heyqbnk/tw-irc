@@ -1,4 +1,14 @@
 # Updates history
+### Release 3.0.7
+It looks like Twitch is observing sent messages and gives them flags
+which say if message contains something bad. It is not documented, so I
+am not sure, but it is 100% that Twitch detects bad words and mark them.
+
+- Removed a bug when user sends a message with bad word and tw-irc was
+unable to parse this message due to bad code. As a result, exception
+was thrown.
+- Added `flags` field for `USERNOTICE` and `PRIVMSG` signals
+
 ### Release 3.0.5
 #### Socket
 - Removed a bug when it was unable to remove listener from websocket with `off`

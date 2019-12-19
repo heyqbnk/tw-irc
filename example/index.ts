@@ -49,7 +49,7 @@ printReadyState();
     });
 
     // Join channel
-    const channel = 'ybicanoooobov';
+    const channel = 'qbnk';
     client.channels.join(channel);
   }
 

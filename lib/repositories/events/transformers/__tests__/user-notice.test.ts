@@ -32,6 +32,7 @@ describe('repositories', () => {
             ...meta,
             channel: 'justintv',
             message: message.data,
+            flags: [],
             messageId: msgId,
             timestamp: tmiSentTs,
             systemMessageId: systemMsg,

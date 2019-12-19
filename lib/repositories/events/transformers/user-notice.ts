@@ -22,6 +22,7 @@ export const userNoticeTransformer: TEventTransformersMap[ESignal.UserNotice] =
       tmiSentTs,
       msgId,
       systemMsg,
+      flags,
       badges,
       emotes,
       ...restParsedMeta
@@ -32,6 +33,7 @@ export const userNoticeTransformer: TEventTransformersMap[ESignal.UserNotice] =
       // practice to return an empty array instead of null here.
       badges: convertToArray(badges),
       emotes: convertToArray(emotes),
+      flags: convertToArray(flags),
     };
 
     return {

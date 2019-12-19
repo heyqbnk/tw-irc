@@ -18,6 +18,7 @@ describe('repositories', () => {
             meta: {
               badges: [],
               emotes: [],
+              flags: [],
               tmiSentTs: 1,
             },
             raw: 'raw',
@@ -57,6 +58,7 @@ describe('repositories', () => {
             message: message.data,
             author: message.prefix.user,
             timestamp: tmiSentTs,
+            flags: [],
             isSelf: true,
             raw: message.raw,
           });

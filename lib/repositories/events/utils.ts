@@ -45,7 +45,7 @@ export function getPlaceData(message: IParsedIRCMessage): TPlace {
 export const convertToArray = <Value>(
   value: Value | Value[] | null,
 ): Value[] => {
-  if (value === null) {
+  if (value === null || value === undefined) {
     return [] as Value[];
   }
   if (!Array.isArray(value)) {

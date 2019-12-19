@@ -1,11 +1,11 @@
-import { ESignal } from '../../../types';
+import {ESignal} from '../../../types';
 import {
   TEventTransformersMap,
   IMessageMeta,
   IMessageMetaPrepared,
 } from '../types';
 
-import { getPrefixUser, convertToArray, getPlaceData } from '../utils';
+import {getPrefixUser, convertToArray, getPlaceData} from '../utils';
 import {removeDeprecatedData} from './utils';
 
 /**
@@ -21,6 +21,7 @@ export const messageTransformer: TEventTransformersMap[ESignal.Message] =
       tmiSentTs,
       badges,
       emotes,
+      flags,
       ...restParsedMeta
     } = removeDeprecatedData(message.meta as unknown as IMessageMeta);
     const meta: IMessageMetaPrepared = {
@@ -29,6 +30,7 @@ export const messageTransformer: TEventTransformersMap[ESignal.Message] =
       // practice to return an empty array instead of null here.
       badges: convertToArray(badges),
       emotes: convertToArray(emotes),
+      flags: convertToArray(flags),
     };
     const author = getPrefixUser(message);
 

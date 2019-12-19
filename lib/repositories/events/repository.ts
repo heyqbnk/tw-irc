@@ -4,10 +4,10 @@ import {
   TListeningManipulator,
   TObservableSignals,
 } from './types';
-import { parseIRCMessage, prepareIRCMessage } from '../../utils';
-import { transformers } from './transformers';
+import {parseIRCMessage, prepareIRCMessage} from '../../utils';
+import {transformers} from './transformers';
 import Socket from '../../socket';
-import { ESignal } from '../../types';
+import {ESignal} from '../../types';
 
 const observableSignals: TObservableSignals[] = [
   ESignal.ClearChat, ESignal.ClearMessage, ESignal.GlobalUserState,
@@ -55,7 +55,7 @@ class EventsRepository implements IEventsRepository {
         `Signal listening for signal "${signal}" is not supported.`,
       );
     }
-    this.signalListeners.push({ signal, listener });
+    this.signalListeners.push({signal, listener});
   };
 
   public off: TListeningManipulator = (signal, listener) => {

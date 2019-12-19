@@ -5,6 +5,7 @@ import {
   IEmote,
   IBadge,
   IParsedIRCMessage,
+  IFlag,
 } from './types';
 
 /**
@@ -30,10 +31,27 @@ function parseEmote(value: string): IEmote {
     .map(item => {
       const [from, to] = item.split('-').map(Number);
 
-      return { from, to };
+      return {from, to};
     });
 
-  return { emoteId: parseInt(emoteId, 10), ranges };
+  return {emoteId: parseInt(emoteId, 10), ranges};
+}
+
+/**
+ * Parses flag.
+ * @param value
+ */
+function parseFlag(value: string): IFlag {
+  const [rangeRaw, labelsRaw] = value.split(':');
+  const [from, to] = rangeRaw.split('-').map(Number);
+  const range = {from, to};
+  const labels = labelsRaw.split('/').map(labelRaw => {
+    const [letter, numberStr] = labelRaw.split('.');
+
+    return {letter, number: parseInt(numberStr)};
+  });
+
+  return {range, labels};
 }
 
 /**
@@ -51,6 +69,12 @@ function parseMetaValue(value: string): TMetaValue {
 
   // Is emote
   if (value.includes(':')) {
+    if (value.includes('.')) {
+      const values = value.split(',');
+
+      return values.map(parseFlag);
+    }
+
     if (value.includes('/')) {
       const values = value.split('/');
 
@@ -72,7 +96,7 @@ function parseMetaValue(value: string): TMetaValue {
   if (value.includes('/')) {
     const [badge, val] = value.split('/');
 
-    return { badge, version: parseInt(val, 10) } as IBadge;
+    return {badge, version: parseInt(val, 10)} as IBadge;
   }
 
   return value;
@@ -111,10 +135,10 @@ function parsePrefix(prefix: string): IPrefix | null {
     }
     const [, nickName, user, host] = match;
 
-    return { nickName, user, host };
+    return {nickName, user, host};
   }
 
-  return { user: null, host: prefix, nickName: null };
+  return {user: null, host: prefix, nickName: null};
 }
 
 /**
