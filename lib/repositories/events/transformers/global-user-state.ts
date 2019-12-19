@@ -1,12 +1,13 @@
 // tslint:disable:max-line-length
-import { ESignal } from '../../../types';
+import {ESignal} from '../../../types';
 import {
   TEventTransformersMap,
   IGlobalUserStateMeta,
   IGlobalUserStateMetaPrepared,
 } from '../types';
 
-import { convertToArray } from '../utils';
+import {convertToArray} from '../utils';
+import {removeDeprecatedData} from './utils';
 
 /**
  * Transformer for GLOBALUSERSTATE
@@ -19,14 +20,10 @@ export const globalUserStateTransformer:
   (_, message) => {
     // Remove deprecated data.
     const {
-      subscriber,
-      mod,
-      turbo,
-      userType,
       badges,
       emoteSets,
       ...restParsedMeta
-    } = message.meta as unknown as IGlobalUserStateMeta;
+    } = removeDeprecatedData(message.meta as unknown as IGlobalUserStateMeta);
     const meta: IGlobalUserStateMetaPrepared = {
       ...restParsedMeta,
       // Dont return null values, in case, an Array must be there. Is a better

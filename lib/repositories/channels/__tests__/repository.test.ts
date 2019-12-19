@@ -1,5 +1,6 @@
-import { ChannelsRepository } from '../repository';
-import { Socket } from '../../../socket';
+// @ts-nocheck
+import ChannelsRepository from '../repository';
+import Socket from '../../../socket';
 import { mkSocket as mockSocket } from '../../../__mocks__/socket';
 
 import each from 'jest-each';
@@ -12,6 +13,17 @@ const controllerCommands = [
   ['r9k', '/r9kbeta'],
 ];
 const targetedCommands = ['host', 'raid'];
+
+const mkSocket: typeof mockSocket = (props) => {
+  const socket = mockSocket(props);
+  socket.connect();
+
+  return socket;
+};
+
+function getSocket(socket: Socket): WebSocket | undefined {
+  return (socket as any).socket;
+}
 
 describe('repositories', () => {
   describe('channels', () => {
@@ -328,14 +340,3 @@ describe('repositories', () => {
     });
   });
 });
-
-const mkSocket: typeof mockSocket = (props) => {
-  const socket = mockSocket(props);
-  socket.connect();
-
-  return socket;
-};
-
-function getSocket(socket: Socket): WebSocket | undefined {
-  return (socket as any).socket;
-}

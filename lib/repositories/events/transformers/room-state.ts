@@ -1,12 +1,12 @@
 // tslint:disable:max-line-length
-import { ESignal } from '../../../types';
+import {ESignal} from '../../../types';
 import {
   TEventTransformersMap,
   IRoomStateMetaParsed,
   IRoomStateMeta,
 } from '../types';
 
-import { getPlaceData, isDefined } from '../utils';
+import {getPlaceData, isDefined} from '../utils';
 
 /**
  * Transformer for ROOMSTATE
@@ -22,7 +22,9 @@ export const roomStateTransformer: TEventTransformersMap[ESignal.RoomState] =
       slow,
       roomId,
     } = rawMeta;
-    const booleanFields = ['emoteOnly', 'r9k', 'subsOnly', 'rituals'];
+    const booleanFields: ['emoteOnly', 'r9k', 'subsOnly', 'rituals'] = [
+      'emoteOnly', 'r9k', 'subsOnly', 'rituals',
+    ];
     const meta = booleanFields
       .reduce<IRoomStateMeta>((acc, item) => {
         const value = rawMeta[item];
@@ -32,7 +34,7 @@ export const roomStateTransformer: TEventTransformersMap[ESignal.RoomState] =
         }
 
         return acc;
-      }, { roomId } as IRoomStateMeta);
+      }, {roomId} as IRoomStateMeta);
     if (followersOnly !== undefined) {
       meta.followersOnly = followersOnly > 0
         ? followersOnly
@@ -43,5 +45,5 @@ export const roomStateTransformer: TEventTransformersMap[ESignal.RoomState] =
       meta.slow = slow;
     }
 
-    return { ...meta, ...getPlaceData(message), raw: message.raw };
+    return {...meta, ...getPlaceData(message), raw: message.raw};
   };

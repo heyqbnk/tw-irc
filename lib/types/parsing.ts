@@ -22,7 +22,7 @@ export interface IBadge {
 
 export interface IEmote {
   emoteId: number;
-  ranges: Array<{ from: number, to: number }>;
+  ranges: Array<{ from: number; to: number }>;
 }
 
 export interface IPrefix {

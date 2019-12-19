@@ -1,5 +1,5 @@
-import { RoomsRepository } from '../repository';
-import { Socket } from '../../../socket';
+import RoomsRepository from '../repository';
+import Socket from '../../../socket';
 import { mkSocket as mockSocket } from '../../../__mocks__/socket';
 
 describe('repositories', () => {

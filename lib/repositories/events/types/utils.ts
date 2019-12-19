@@ -3,4 +3,4 @@
  */
 export type TPlace =
   { channel: string }
-  | { room: { channelId: string, roomUuid: string } };
+  | { room: { channelId: string; roomUuid: string } };

@@ -4,13 +4,13 @@ import {
   IClientConstructorProps,
   TListeningManipulator,
 } from './types';
-import { Socket } from '../socket';
+import Socket from '../socket';
 
-import { ChannelsRepository } from '../repositories/channels';
-import { RoomsRepository } from '../repositories/rooms';
-import { EventsRepository } from '../repositories/events';
+import ChannelsRepository from '../repositories/channels/repository';
+import EventsRepository from '../repositories/events';
+import RoomsRepository from '../repositories/rooms/repository';
 
-import { generateRandomAuth, isPasswordValid } from './utils';
+import {generateRandomAuth, isPasswordValid} from './utils';
 
 class Client implements IClient {
   /**
@@ -23,13 +23,15 @@ class Client implements IClient {
   public rooms: RoomsRepository;
 
   public constructor(props: IClientConstructorProps = {}) {
-    const { secure, auth: initialAuth } = props;
+    const {secure, auth: initialAuth} = props;
     let auth: IAuthInfo;
 
     if (initialAuth) {
-      if (!isPasswordValid(initialAuth.password)) {
+      const {password} = initialAuth;
+
+      if (!isPasswordValid(password)) {
         throw new Error(
-          `Stated password "${initialAuth.password}" is invalid. ` +
+          `Passed password "${password}" is invalid. ` +
           'It should start with "oauth:". Your auth data will be ignored. ' +
           'Please follow these instructions to get more info:\n' +
           'https://twitchapps.com/tmi/\n' +
@@ -41,7 +43,7 @@ class Client implements IClient {
       auth = generateRandomAuth();
     }
 
-    const socket = new Socket({ secure, auth });
+    const socket = new Socket({secure, auth});
 
     this.socket = socket;
 
@@ -67,9 +69,10 @@ class Client implements IClient {
     this.channels.assign(channel);
   };
 
-  public assignRoom = (room: { channelId: string, roomUuid: string }) => {
+  public assignRoom = (room: {channelId: string; roomUuid: string}) => {
     this.rooms.assign(room);
   };
 }
 
-export { Client };
+export {Client};
+export default Client;

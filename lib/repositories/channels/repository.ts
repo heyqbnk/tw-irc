@@ -6,10 +6,10 @@ import {
   TTargetedCommand,
 } from './types';
 import { ESignal } from '../../types';
-import { Socket } from '../../socket';
+import Socket from '../../socket';
 import { SharedRepository } from '../../types/shared-repository';
 
-export class ChannelsRepository extends SharedRepository<string>
+class ChannelsRepository extends SharedRepository<string>
   implements IChannelsRepository {
   private readonly socket: Socket;
 
@@ -82,3 +82,5 @@ export class ChannelsRepository extends SharedRepository<string>
   public vip = this.createUserCommand('/vip');
   public unvip = this.createUserCommand('/unvip');
 }
+
+export default ChannelsRepository;

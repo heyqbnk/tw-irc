@@ -1,29 +1,24 @@
-interface IAuthData {
-  login: string;
-  password: string;
-}
+import {IAuthInfo} from '../client/types';
 
 interface ISocketConstructorProps {
   /**
    * Sets security connection security level.
    */
   secure?: boolean;
-
   /**
-   * Authentication data,
+   * Authentication information.
    */
-  auth: IAuthData;
+  auth: IAuthInfo;
 }
 
 interface IListener {
   eventName: keyof WebSocketEventMap;
-
   listener(ev: Event): void;
 }
 
 type TListeningManipulator = <K extends keyof WebSocketEventMap>(
   eventName: K,
-  listener: (ev: WebSocketEventMap[K]) => any,
+  listener: (e: WebSocketEventMap[K]) => any,
 ) => void;
 
 /**
@@ -74,5 +69,4 @@ export {
   ISocket,
   TListeningManipulator,
   ESocketReadyState,
-  IAuthData,
 };

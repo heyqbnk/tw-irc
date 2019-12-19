@@ -7,6 +7,7 @@ import {
 } from '../types';
 
 import { convertToArray, getPlaceData } from '../utils';
+import {removeDeprecatedData} from './utils';
 
 /**
  * Transformer for USERSTATE
@@ -18,14 +19,10 @@ export const userStateTransformer: TEventTransformersMap[ESignal.UserState] =
   (_, message) => {
     // Remove deprecated data.
     const {
-      subscriber,
-      mod,
-      turbo,
-      userType,
       badges,
       emoteSets,
       ...restParsedMeta
-    } = message.meta as unknown as IUserStateMeta;
+    } = removeDeprecatedData(message.meta as unknown as IUserStateMeta);
     const meta: IUserStateMetaPrepared = {
       ...restParsedMeta,
       // Dont return null values, in case, an Array must be there. Is a better

@@ -1,8 +1,10 @@
-import { Client, ESignal } from '../lib';
-import { ESocketReadyState } from '../lib/socket/types';
-import { TObservableSignals } from '../lib/repositories/events/types';
+import Client, {ESignal} from '../lib';
+import {ESocketReadyState} from '../lib/socket';
+import {TObservableSignals} from '../lib/repositories/events/types';
 
 const client = new Client();
+
+const {Open, Closed, Closing} = ESocketReadyState;
 
 /**
  * Prints current ready state.
@@ -10,11 +12,11 @@ const client = new Client();
 function printReadyState() {
   const state = client.socket.getReadyState();
 
-  if (state === ESocketReadyState.Open) {
+  if (state === Open) {
     console.warn('Socket connection is established');
-  } else if (state === ESocketReadyState.Closed) {
+  } else if (state === Closed) {
     console.warn('Socket connection is closed');
-  } else if (state === ESocketReadyState.Closing) {
+  } else if (state === Closing) {
     console.warn('Socket connection is closing');
   } else {
     console.warn('Socket connection is being established..');
@@ -27,7 +29,7 @@ const observableSignals: TObservableSignals[] = [
   ESignal.Reconnect, ESignal.RoomState, ESignal.UserNotice, ESignal.UserState,
 ];
 
-const listeners = [];
+const listeners: any[] = [];
 
 printReadyState();
 
@@ -40,16 +42,15 @@ printReadyState();
 
     // Watch each observable signal.
     observableSignals.forEach(signal => {
-      const listener = params => console.log(`${signal} ::`, params);
-      listeners.push({ signal, listener });
+      const listener = (params: any) => console.log(`${signal} ::`, params);
+      listeners.push({signal, listener});
 
       client.on(signal, listener);
     });
 
     // Join channel
-    const channel = 'c_a_k_e';
+    const channel = 'ybicanoooobov';
     client.channels.join(channel);
-    client.assignChannel(channel);
   }
 
   /**
@@ -59,7 +60,7 @@ printReadyState();
     printReadyState();
 
     // Dont forger to cleanup after disconnect.
-    listeners.forEach(({ signal, listener }) => client.off(signal, listener));
+    listeners.forEach(({signal, listener}) => client.off(signal, listener));
   }
 
   // Add event listener on socket opened

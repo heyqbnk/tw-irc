@@ -18,9 +18,11 @@ export interface IOptionsWithDuration<T> {
   channel?: string;
 }
 
-export interface IFollowersOnlyOptions extends IOptionsWithDuration<string> {}
+export interface IFollowersOnlyOptions extends IOptionsWithDuration<string> {
+}
 
-export interface IPlayCommercialOptions extends IOptionsWithDuration<number> {}
+export interface IPlayCommercialOptions extends IOptionsWithDuration<number> {
+}
 
 export interface IMarkerOptions {
   comment?: string;
@@ -38,61 +40,50 @@ export interface IChannelsRepository extends ISharedRepository<string> {
     enable(options?: IFollowersOnlyOptions): void;
     disable: TChannelCommand;
   };
-
   /**
    * Deletes message from channel.
    * @param id
    * @param channel
    */
   deleteMessage(id: string, channel?: string): void;
-
   /**
    * Plays commercial ads.
    * @param options
    */
   playCommercial(options?: IPlayCommercialOptions): void;
-
   /**
    * Leaves a marker with comment.
    * @param options
    */
   marker(options?: IMarkerOptions): void;
-
   /**
    * Hosts channel.
    */
   host: TTargetedCommand;
-
   /**
    * Unhosts.
    */
   unhost: TChannelCommand;
-
   /**
    * Raids channel.
    */
   raid: TTargetedCommand;
-
   /**
    * Unraids.
    */
   unraid: TChannelCommand;
-
   /**
    * Mods user.
    */
   mod: TUserCommand;
-
   /**
    * Unmods user.
    */
   unmod: TUserCommand;
-
   /**
    * Makes user VIP.
    */
   vip: TUserCommand;
-
   /**
    * Removes user's VIP status.
    */

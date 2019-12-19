@@ -1,4 +1,9 @@
 # Updates history
+### Release 3.0.5
+#### Socket
+- Removed a bug when it was unable to remove listener from websocket with `off`
+method
+
 ### Release 3.0.0
 `WARNING: BREAKING CHANGES`
 

@@ -2,7 +2,6 @@ import { Client } from '../client';
 import * as utils from '../utils';
 import { ESignal } from '../../types';
 import { mockWebSocket } from '../../__mocks__/websocket';
-import * as socket from '../../socket';
 
 mockWebSocket();
 
@@ -26,20 +25,6 @@ describe('client', () => {
           password: 'woof!',
         };
         expect(() => new Client({ auth })).toThrow();
-      });
-
-      it('should create socket with passed auth, if it is valid', () => {
-        const auth = {
-          login: 'HUSKY',
-          password: 'oauth:CRUSH',
-        };
-        // @ts-ignore
-        const socketSpy = jest.spyOn(socket, 'Socket');
-        new Client({ auth });
-
-        expect(socketSpy).toHaveBeenCalledWith(expect.objectContaining({
-          auth,
-        }));
       });
     });
 

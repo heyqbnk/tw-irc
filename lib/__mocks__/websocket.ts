@@ -1,4 +1,4 @@
-// tslint:disable:no-invalid-this
+// @ts-nocheck
 export const MockWebSocket = jest.fn(function(path: string) {
   this.CONNECTING = 0;
   this.OPEN = 1;
@@ -38,5 +38,4 @@ export const MockWebSocket = jest.fn(function(path: string) {
   });
 });
 
-// @ts-ignore
 export const mockWebSocket = () => global.WebSocket = MockWebSocket;

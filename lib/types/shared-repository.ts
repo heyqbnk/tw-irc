@@ -40,7 +40,7 @@ export interface ISharedRepository<Place> {
    * Gives user a timeout.
    * @param options
    */
-  timeout(options: ITimeoutOptions<Place>);
+  timeout(options: ITimeoutOptions<Place>): void;
 
   /**
    * Removes user's timeout.
@@ -51,26 +51,26 @@ export interface ISharedRepository<Place> {
    * Whispers someone.
    * @param options
    */
-  whisper(options: IWhisperOptions<Place>);
+  whisper(options: IWhisperOptions<Place>): void;
 
   /**
    * Says a message to room.
    * @param {string} message
    * @param place
    */
-  say(message: string, place?: Place);
+  say(message: string, place?: Place): void;
 
   /**
    * Joins channel.
    * @param options
    */
-  join(options: Place);
+  join(options: Place): void;
 
   /**
    * Leaves room.
    * @param options
    */
-  disconnect(options: Place);
+  disconnect(options: Place): void;
 
   /**
    * Emote-only mode.
@@ -86,7 +86,7 @@ export interface ISharedRepository<Place> {
    * Slowmode.
    */
   slowmode: {
-    enable(options?: ISlowmodeOptions<Place>);
+    enable(options?: ISlowmodeOptions<Place>): void;
     disable: TChannelCommand<Place>;
   };
 
@@ -100,20 +100,20 @@ export interface ISharedRepository<Place> {
    * @param {string} action
    * @param place
    */
-  me(action: string, place?: Place);
+  me(action: string, place?: Place): void;
 
   /**
    * Changes our chat color.
    * @param {string} color
    * @param place
    */
-  changeColor(color: string, place?: Place);
+  changeColor(color: string, place?: Place): void;
 
   /**
    * Assigns place to repository
    * @param {Place} place
    */
-  assign(place?: Place);
+  assign(place?: Place): void;
 }
 
 export abstract class SharedRepository<Place>
@@ -153,9 +153,8 @@ export abstract class SharedRepository<Place>
     disable: (place?: Place) => this.say(`${mode}off`, place),
   });
 
-  public abstract say(message: string, place?: Place);
-
-  public abstract join(options: Place);
+  public abstract say(message: string, place?: Place): void;
+  public abstract join(place: Place): void;
 
   public ban = this.createUserCommand('/ban');
 

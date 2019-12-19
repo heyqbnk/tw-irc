@@ -6,6 +6,7 @@ import {
 } from '../types';
 
 import { getPrefixUser, convertToArray, getPlaceData } from '../utils';
+import {removeDeprecatedData} from './utils';
 
 /**
  * Transformer for PRIVMSG
@@ -17,15 +18,11 @@ export const messageTransformer: TEventTransformersMap[ESignal.Message] =
   (login, message) => {
     // Remove deprecated data.
     const {
-      subscriber,
-      mod,
-      turbo,
-      userType,
       tmiSentTs,
       badges,
       emotes,
       ...restParsedMeta
-    } = message.meta as unknown as IMessageMeta;
+    } = removeDeprecatedData(message.meta as unknown as IMessageMeta);
     const meta: IMessageMetaPrepared = {
       ...restParsedMeta,
       // Dont return null values, in case, an Array must be there. Is a better

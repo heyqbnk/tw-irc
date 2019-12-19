@@ -6,16 +6,16 @@ import {
 } from './types';
 import { parseIRCMessage, prepareIRCMessage } from '../../utils';
 import { transformers } from './transformers';
-import { Socket } from '../../socket';
+import Socket from '../../socket';
 import { ESignal } from '../../types';
 
-const observable: TObservableSignals[] = [
+const observableSignals: TObservableSignals[] = [
   ESignal.ClearChat, ESignal.ClearMessage, ESignal.GlobalUserState,
   ESignal.Host, ESignal.Join, ESignal.Leave, ESignal.Message, ESignal.Notice,
   ESignal.Reconnect, ESignal.RoomState, ESignal.UserNotice, ESignal.UserState,
 ];
 
-export class EventsRepository implements IEventsRepository {
+class EventsRepository implements IEventsRepository {
   private readonly signalListeners: ISignalListener[] = [];
   private readonly socket: Socket;
   private readonly login: string;
@@ -37,30 +37,30 @@ export class EventsRepository implements IEventsRepository {
       const parsedMessage = parseIRCMessage(message);
 
       // Check if there are bound listeners to this command.
-      this.signalListeners.forEach(item => {
-        if (item.event === parsedMessage.signal) {
+      this.signalListeners.forEach(({signal, listener}) => {
+        if (signal === parsedMessage.signal) {
           // We have to pre-transform parameters to format, applicable
           // by specific listener.
           const transform = transformers[parsedMessage.signal];
 
-          item.listener(transform(this.login, parsedMessage));
+          listener(transform(this.login, parsedMessage));
         }
       });
     });
   };
 
-  public on: TListeningManipulator = (event, listener) => {
-    if (!observable.includes(event)) {
+  public on: TListeningManipulator = (signal, listener) => {
+    if (!observableSignals.includes(signal)) {
       throw new Error(
-        `Signal listening for signal "${event}" is not supported.`,
+        `Signal listening for signal "${signal}" is not supported.`,
       );
     }
-    this.signalListeners.push({ event, listener });
+    this.signalListeners.push({ signal, listener });
   };
 
-  public off: TListeningManipulator = (command, listener) => {
+  public off: TListeningManipulator = (signal, listener) => {
     const foundIndex = this.signalListeners.findIndex(
-      item => item.listener === listener && item.event === command,
+      item => item.listener === listener && item.signal === signal,
     );
 
     if (foundIndex > -1) {
@@ -68,3 +68,5 @@ export class EventsRepository implements IEventsRepository {
     }
   };
 }
+
+export default EventsRepository;

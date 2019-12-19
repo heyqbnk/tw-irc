@@ -4,13 +4,17 @@
     "target": "es5",
     "module": "esnext",
     "declaration": true,
+    "esModuleInterop": true,
     "moduleResolution": "node",
+    "declarationMap": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "removeComments": false,
     "preserveConstEnums": true,
     "sourceMap": true,
     "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": false,
     "baseUrl": ".",
     "lib": [
       "dom",
@@ -19,7 +23,8 @@
     "outDir": "./dist"
   },
   "include": [
-    "lib"
+    "lib",
+    "example"
   ],
   "exclude": [
     "node_modules",

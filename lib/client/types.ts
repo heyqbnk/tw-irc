@@ -1,17 +1,13 @@
-import { Socket } from '../socket';
+import Socket from '../socket';
 
-import { ChannelsRepository } from '../repositories/channels';
-import { RoomsRepository } from '../repositories/rooms';
+import ChannelsRepository from '../repositories/channels';
+import RoomsRepository from '../repositories/rooms';
 
 import {
   TObservableSignals,
   TSignalListenersMap,
 } from '../repositories/events';
-
-interface IAuthInfo {
-  login: string;
-  password: string;
-}
+import {IAuthInfo} from '../types';
 
 interface IClientConstructorProps {
   auth?: IAuthInfo;
@@ -50,7 +46,7 @@ interface IClient {
   /**
    * Disconnects web socket.
    */
-  disconnect();
+  disconnect(): void;
 
   /**
    * Shortcut to commands events binding. Make listener call when command
@@ -67,13 +63,13 @@ interface IClient {
    * Binds this client to passed channel.
    * @param {string} channel
    */
-  assignChannel(channel: string);
+  assignChannel(channel: string): void;
 
   /**
    * Binds this client to passed room.
    * @param room
    */
-  assignRoom(room: { channelId: string, roomUuid: string });
+  assignRoom(room: {channelId: string; roomUuid: string}): void;
 }
 
-export { IAuthInfo, IClientConstructorProps, IClient, TListeningManipulator };
+export {IAuthInfo, IClientConstructorProps, IClient, TListeningManipulator};

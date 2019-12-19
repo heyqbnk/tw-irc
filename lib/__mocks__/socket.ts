@@ -1,13 +1,13 @@
-import { IAuthData } from '../socket/types';
-import { Socket } from '../socket';
+import {IAuthInfo} from '../types';
+import Socket from '../socket';
 
 export function mkSocket(
-  props: { auth?: IAuthData, secure?: boolean } = {},
+  props: {auth?: IAuthInfo; secure?: boolean} = {},
 ): Socket {
   const {
-    auth = { login: '', password: '' },
+    auth = {login: '', password: ''},
     secure = false,
   } = props;
 
-  return new Socket({ auth, secure });
+  return new Socket({auth, secure});
 }

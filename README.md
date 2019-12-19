@@ -24,7 +24,7 @@ const client = new Client();
 // Create client with authentication. It will allow us to send messages.
 const authenticatedClient = new Client({
   auth: {
-    login: '...', // your login, lower-cased
+    login: '...', // login used to sign in Twitch
     password: '...', // get it here: https://twitchapps.com/tmi/
   },
 });

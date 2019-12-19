@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import * as utils from '../../../utils';
-import { EventsRepository } from '../repository';
-import { Socket } from '../../../socket';
+import EventsRepository from '../repository';
+import Socket from '../../../socket';
 import { ESignal } from '../../../types';
 import { mockWebSocket } from '../../../__mocks__/websocket';
 import { mkSocket } from '../../../__mocks__/socket';
@@ -144,7 +144,7 @@ function emitEvent(socket: Socket, event: Event) {
   (socket as any).socket.dispatchEvent(event);
 }
 
-function mkEventsRepository(props: { socket?: Socket, login?: string } = {}) {
+function mkEventsRepository(props: { socket?: Socket; login?: string } = {}) {
   const {
     socket = mkSocket(),
     login = '',

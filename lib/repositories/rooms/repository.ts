@@ -1,9 +1,9 @@
 import { IRoom} from './types';
 import { ESignal } from '../../types';
 import { SharedRepository } from '../../types/shared-repository';
-import { Socket } from '../../socket';
+import Socket from '../../socket';
 
-export class RoomsRepository extends SharedRepository<IRoom> {
+class RoomsRepository extends SharedRepository<IRoom> {
   private readonly socket: Socket;
 
   public constructor(socket: Socket) {
@@ -31,3 +31,5 @@ export class RoomsRepository extends SharedRepository<IRoom> {
     );
   };
 }
+
+export default RoomsRepository;

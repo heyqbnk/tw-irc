@@ -1,20 +1,29 @@
-import { Socket } from '../socket';
-import { ESignal } from '../../types';
-import { ESocketReadyState } from '../types';
-import { mockWebSocket, MockWebSocket } from '../../__mocks__/websocket';
-import { mkSocket } from '../../__mocks__/socket';
+import Socket from '../socket';
+import {ESignal} from '../../types';
+import {ESocketReadyState} from '../types';
+import {mockWebSocket, MockWebSocket} from '../../__mocks__/websocket';
+import {mkSocket} from '../../__mocks__/socket';
 
 mockWebSocket();
 
+function getSocket(socket: Socket): WebSocket | undefined {
+  return (socket as any).socket;
+}
+
+function emitEvent(socket: Socket, event: Event) {
+  (socket as any).socket.dispatchEvent(event);
+}
+
 describe('socket', () => {
   describe('constructor', () => {
-    it('should remember authentication data with fields "login" and "password", ' +
-      'taken from passed "auth". Each of this values should be lower-cased', () => {
+    it('should remember authentication data with fields "login" and ' +
+      '"password", taken from passed "auth". Each of this values should be ' +
+      'lower-cased', () => {
       const auth = {
         login: 'Astronaunt',
         password: 'NUTS',
       };
-      const socket = mkSocket({ auth });
+      const socket = mkSocket({auth});
 
       expect((socket as any).auth).toEqual({
         login: auth.login.toLowerCase(),
@@ -27,16 +36,16 @@ describe('socket', () => {
     it('should create WebSocket instance with path ' +
       '"ws://irc-ws.chat.twitch.tv:80" if "secure" was "false", or ' +
       '"wss://irc-ws.chat.twitch.tv:443" if "secure" was "true"', () => {
-      let socket = mkSocket({ secure: false });
+      let socket = mkSocket({secure: false});
       socket.connect();
 
-      let ws = getSocket(socket);
+      const ws = getSocket(socket);
       // Previously we have overridden WebSocket with MockWebSocket, so check it
       expect(ws).toBeInstanceOf(MockWebSocket);
       expect(MockWebSocket)
         .toHaveBeenLastCalledWith('ws://irc-ws.chat.twitch.tv:80');
 
-      socket = mkSocket({ secure: true });
+      socket = mkSocket({secure: true});
       socket.connect();
       expect(MockWebSocket)
         .toHaveBeenLastCalledWith('wss://irc-ws.chat.twitch.tv:443');
@@ -46,7 +55,7 @@ describe('socket', () => {
       const socket = mkSocket();
       let ws = getSocket(socket);
 
-      expect(ws).toBe(undefined);
+      expect(ws).toBe(null);
       socket.connect();
       ws = getSocket(socket);
       const spy = jest.spyOn(ws, 'close');
@@ -72,11 +81,11 @@ describe('socket', () => {
     });
   });
 
-  it('"on" adds event listener in case websocket exists. Otherwise, ignore', () => {
+  it('"on" adds event listener in case websocket exists. Otherwise, ' +
+    'ignore', () => {
     const socket = mkSocket();
     const listener = jest.fn();
-    socket.on('message', () => {
-    });
+    socket.on('message', jest.fn());
 
     socket.connect();
     const spy = jest.spyOn(getSocket(socket), 'addEventListener');
@@ -90,8 +99,7 @@ describe('socket', () => {
     const spliceSpy = jest.spyOn((socket as any).listeners, 'splice');
     const listener = jest.fn();
 
-    socket.off('message', () => {
-    });
+    socket.off('message', jest.fn());
     expect(spliceSpy).not.toHaveBeenCalled();
 
     socket.on('message', listener);
@@ -117,12 +125,6 @@ describe('socket', () => {
       .mockImplementationOnce(jest.fn);
     socket.send('message');
     expect(spy).toHaveBeenCalledWith('message');
-  });
-
-  it('"bindEvents" throws an error if socket is not initialized', () => {
-    const socket = mkSocket();
-
-    expect(() => (socket as any).bindEvents()).toThrow();
   });
 
   describe('onMessage', () => {
@@ -175,8 +177,8 @@ describe('socket', () => {
   });
 
   describe('onOpen', () => {
-    it('should request capabilities: twitch.tv/membership, twitch.tv/tags and ' +
-      'twitch.tv/commands on connection open', () => {
+    it('should request capabilities: twitch.tv/membership, ' +
+      'twitch.tv/tags and twitch.tv/commands on connection open', () => {
       const socket = mkSocket();
       const sendSpy = jest.spyOn(socket, 'send');
       socket.connect();
@@ -191,8 +193,8 @@ describe('socket', () => {
 
     it('should send "PASS {password}" and "NICK {login}" on connection ' +
       'open', () => {
-      const auth = { login: 'husky', password: 'champagne' };
-      const socket = mkSocket({ auth });
+      const auth = {login: 'husky', password: 'champagne'};
+      const socket = mkSocket({auth});
       const sendSpy = jest.spyOn(socket, 'send');
       socket.connect();
 
@@ -204,11 +206,3 @@ describe('socket', () => {
     });
   });
 });
-
-function getSocket(socket: Socket): WebSocket | undefined {
-  return (socket as any).socket;
-}
-
-function emitEvent(socket: Socket, event: Event) {
-  (socket as any).socket.dispatchEvent(event);
-}

@@ -7,6 +7,7 @@ import {
 } from '../types';
 
 import { convertToArray, getChannel } from '../utils';
+import {removeDeprecatedData} from './utils';
 
 /**
  * Transformer for USERNOTICE
@@ -18,17 +19,13 @@ export const userNoticeTransformer: TEventTransformersMap[ESignal.UserNotice] =
   (_, message) => {
     // Remove deprecated data.
     const {
-      subscriber,
-      mod,
-      turbo,
-      userType,
       tmiSentTs,
       msgId,
       systemMsg,
       badges,
       emotes,
       ...restParsedMeta
-    } = message.meta as unknown as IUserNoticeMeta;
+    } = removeDeprecatedData(message.meta as unknown as IUserNoticeMeta);
     const meta: IUserNoticeMetaPrepared = {
       ...restParsedMeta,
       // Dont return null values, in case, an Array must be there. Is a better
