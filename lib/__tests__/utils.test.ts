@@ -36,14 +36,14 @@ describe('utils', () => {
       'these objects.', () => {
       expect(parseMetaValue('999:1-5,6-8')).toEqual({
         emoteId: 999,
-        ranges: [{ from: 1, to: 5 }, { from: 6, to: 8 }],
+        ranges: [{from: 1, to: 5}, {from: 6, to: 8}],
       });
       expect(parseMetaValue('999:1-5,6-8/22:10-11')).toEqual([{
         emoteId: 999,
-        ranges: [{ from: 1, to: 5 }, { from: 6, to: 8 }],
+        ranges: [{from: 1, to: 5}, {from: 6, to: 8}],
       }, {
         emoteId: 22,
-        ranges: [{ from: 10, to: 11 }],
+        ranges: [{from: 10, to: 11}],
       }]);
     });
 
@@ -75,16 +75,16 @@ describe('utils', () => {
         }],
         emotes: {
           emoteId: 22,
-          ranges: [{ from: 1, to: 5 }],
+          ranges: [{from: 1, to: 5}],
         },
       });
       expect(parseMeta(meta2)).toEqual({
         emotes: [{
           emoteId: 22,
-          ranges: [{ from: 1, to: 5 }],
+          ranges: [{from: 1, to: 5}],
         }, {
           emoteId: 38,
-          ranges: [{ from: 6, to: 7 }],
+          ranges: [{from: 6, to: 7}],
         }],
       });
     });
@@ -162,10 +162,10 @@ describe('utils', () => {
           host: 'husky.tmi.twitch.tv',
         },
         meta: {
-          badgeInfo: { badge: 'subscriber', version: 7 },
+          badgeInfo: {badge: 'subscriber', version: 7},
           badges: [
-            { badge: 'moderator', version: 1 },
-            { badge: 'subscriber', version: 6 },
+            {badge: 'moderator', version: 1},
+            {badge: 'subscriber', version: 6},
           ],
           color: '#00FFFF',
           displayName: 'husky',

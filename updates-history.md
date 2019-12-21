@@ -1,13 +1,34 @@
 # Updates history
+### Release 4.0.0
+- Project folders were flatten for easier usage;
+- Some folders were renamed;
+- All typings are now exported to be used outside;
+- Added an ability to observe custom signals with `string` event name 
+(not `ESignal`). When a listener is bound to `string` signal, 
+it should take 1 parameter - `message: IParsedIRCMessage`; 
+- Such definition as `Observable signals` was removed from the project. 
+Now you are able to observe any signal from IRC, but there is no guarantee
+IRC sends this signal at all. This check was removed due to we will never
+know which signals will appear in near future;
+- Some improvements for `NOTICE` signal listener. Now you can use `ENoticeMessageId`
+to detect which notice occurred. There was a bug for this feature - 
+wrong enum used;
+
+`WARNING`
+Channels and rooms assigning features will be removed in near future releases.
+So, please, prepare your code to work properly. We will not just remove these
+things, but replace with something same but working much more expected than
+currently.
+
 ### Release 3.0.7
 It looks like Twitch is observing sent messages and gives them flags
 which say if message contains something bad. It is not documented, so I
 am not sure, but it is 100% that Twitch detects bad words and mark them.
 
-- Removed a bug when user sends a message with bad word and tw-irc was
+- Removed a bug when user sends a message with bad word and `tw-irc` was
 unable to parse this message due to bad code. As a result, exception
 was thrown.
-- Added `flags` field for `USERNOTICE` and `PRIVMSG` signals
+- Added `flags` field for `USERNOTICE` and `PRIVMSG` signals listeners data.
 
 ### Release 3.0.5
 #### Socket

@@ -13,7 +13,7 @@ import {
  * @param {string} text
  * @returns {string}
  */
-function toCamelCase(text: string): string {
+export function toCamelCase(text: string): string {
   return text.replace(/-[a-z]/gi, match => {
     return match.slice(1).toUpperCase();
   });
@@ -24,7 +24,7 @@ function toCamelCase(text: string): string {
  * @param {string} value
  * @returns {IEmote}
  */
-function parseEmote(value: string): IEmote {
+export function parseEmote(value: string): IEmote {
   const [emoteId, emotesRaw] = value.split(':');
   const ranges = emotesRaw
     .split(',')
@@ -41,7 +41,7 @@ function parseEmote(value: string): IEmote {
  * Parses flag.
  * @param value
  */
-function parseFlag(value: string): IFlag {
+export function parseFlag(value: string): IFlag {
   const [rangeRaw, labelsRaw] = value.split(':');
   const [from, to] = rangeRaw.split('-').map(Number);
   const range = {from, to};
@@ -59,7 +59,7 @@ function parseFlag(value: string): IFlag {
  * @param {string} value
  * @returns {string | number}
  */
-function parseMetaValue(value: string): TMetaValue {
+export function parseMetaValue(value: string): TMetaValue {
   const asNumber = parseInt(value, 10);
 
   // Is number
@@ -107,7 +107,7 @@ function parseMetaValue(value: string): TMetaValue {
  * @returns {TMeta | null}
  * @param metaRaw
  */
-function parseMeta(metaRaw: string): IMeta | null {
+export function parseMeta(metaRaw: string): IMeta | null {
   const meta = metaRaw[0] === '@' ? metaRaw.slice(1) : metaRaw;
   if (meta === '') {
     return null;
@@ -126,7 +126,7 @@ function parseMeta(metaRaw: string): IMeta | null {
   );
 }
 
-function parsePrefix(prefix: string): IPrefix | null {
+export function parsePrefix(prefix: string): IPrefix | null {
   if (prefix.includes('!')) {
     const match = prefix.match(/(.*)!(.*)@(.*)/);
 
@@ -146,7 +146,7 @@ function parsePrefix(prefix: string): IPrefix | null {
  * @param {string} message
  * @returns {string[]}
  */
-function prepareIRCMessage(message: string): string[] {
+export function prepareIRCMessage(message: string): string[] {
   if (message.length === 0) {
     return [];
   }
@@ -162,7 +162,7 @@ function prepareIRCMessage(message: string): string[] {
  * @returns {any}
  * @param messageRaw
  */
-function parseIRCMessage(messageRaw: string): IParsedIRCMessage {
+export function parseIRCMessage(messageRaw: string): IParsedIRCMessage {
   const message = messageRaw.startsWith(':')
     ? ' ' + messageRaw
     : messageRaw;
@@ -195,14 +195,3 @@ function parseIRCMessage(messageRaw: string): IParsedIRCMessage {
     raw: messageRaw,
   };
 }
-
-export {
-  parseIRCMessage,
-  prepareIRCMessage,
-  IParsedIRCMessage,
-  toCamelCase,
-  parseMeta,
-  parseEmote,
-  parsePrefix,
-  parseMetaValue,
-};

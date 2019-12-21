@@ -1,6 +1,6 @@
 import Client, {ESignal} from '../lib';
+import {TTransformableEvent} from '../lib/EventsRepository';
 import {ESocketReadyState} from '../lib/socket';
-import {TObservableSignals} from '../lib/repositories/events/types';
 
 const client = new Client();
 
@@ -23,7 +23,7 @@ function printReadyState() {
   }
 }
 
-const observableSignals: TObservableSignals[] = [
+const observableSignals: TTransformableEvent[] = [
   ESignal.ClearChat, ESignal.ClearMessage, ESignal.GlobalUserState,
   ESignal.Host, ESignal.Join, ESignal.Leave, ESignal.Message, ESignal.Notice,
   ESignal.Reconnect, ESignal.RoomState, ESignal.UserNotice, ESignal.UserState,
@@ -40,16 +40,8 @@ printReadyState();
   function onConnected() {
     printReadyState();
 
-    // Watch each observable signal.
-    observableSignals.forEach(signal => {
-      const listener = (params: any) => console.log(`${signal} ::`, params);
-      listeners.push({signal, listener});
-
-      client.on(signal, listener);
-    });
-
     // Join channel
-    const channel = 'qbnk';
+    const channel = 'summit1g';
     client.channels.join(channel);
   }
 
@@ -58,10 +50,15 @@ printReadyState();
    */
   function onDisconnected() {
     printReadyState();
-
-    // Dont forger to cleanup after disconnect.
-    listeners.forEach(({signal, listener}) => client.off(signal, listener));
   }
+
+  // Watch each observable signal.
+  observableSignals.forEach(signal => {
+    const listener = (params: any) => console.log(`${signal} ::`, params);
+    listeners.push({signal, listener});
+
+    client.on(signal, listener);
+  });
 
   // Add event listener on socket opened
   client.socket.on('open', onConnected);

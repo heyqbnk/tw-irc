@@ -3,7 +3,8 @@ import {ESignal} from './irc';
 export type TMetaValue = string | number | IBadge | IEmote | IFlag
   | Array<string | number | IBadge | IEmote | IFlag>;
 
-export interface IMeta extends Record<string, TMetaValue | null> {
+export interface IMeta {
+  [key: string]: TMetaValue | null;
 }
 
 /**

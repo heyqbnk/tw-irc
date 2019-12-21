@@ -1,5 +1,5 @@
 import {IAuthInfo} from '../types';
-import Socket from '../socket';
+import Socket from '../Socket';
 
 export function mkSocket(
   props: {auth?: IAuthInfo; secure?: boolean} = {},

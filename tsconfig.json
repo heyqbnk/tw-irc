@@ -11,7 +11,6 @@
     "noUnusedParameters": true,
     "removeComments": false,
     "preserveConstEnums": true,
-    "sourceMap": true,
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": false,
