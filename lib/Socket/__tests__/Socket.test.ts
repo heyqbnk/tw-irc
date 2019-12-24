@@ -1,4 +1,4 @@
-import Socket from '../socket';
+import Socket from '../Socket';
 import {ESignal} from '../../types';
 import {ESocketReadyState} from '../types';
 import {mockWebSocket, MockWebSocket} from '../../__mocks__/websocket';

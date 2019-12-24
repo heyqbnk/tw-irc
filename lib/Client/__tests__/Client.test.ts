@@ -1,4 +1,4 @@
-import { Client } from '../client';
+import { Client } from '../Client';
 import * as utils from '../utils';
 import { ESignal } from '../../types';
 import { mockWebSocket } from '../../__mocks__/websocket';
