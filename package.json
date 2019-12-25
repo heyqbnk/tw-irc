@@ -1,6 +1,6 @@
 {
   "name": "tw-irc",
-  "version": "4.0.2",
+  "version": "5.0.0",
   "description": "TypeScript library for working with Twitch IRC",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
