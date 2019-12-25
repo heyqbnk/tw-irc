@@ -1,8 +1,7 @@
-import {IRoom} from '../types';
-import {ISharedRepository} from '../SharedRepository';
+import {ISharedForkedRepository} from '../SharedForkedRepository';
 
 /**
- * Implementation class for RoomsRepository class.
+ * Implementation class for RoomsForkedRepository class.
  */
-export interface IRoomsRepository extends ISharedRepository<IRoom> {
+export interface IRoomsForkedRepository extends ISharedForkedRepository {
 }

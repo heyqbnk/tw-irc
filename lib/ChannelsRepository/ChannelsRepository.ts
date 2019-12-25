@@ -7,51 +7,33 @@ import {
 } from './types';
 import {ESignal, TChannel} from '../types';
 
-import Socket from '../Socket';
 import SharedRepository from '../SharedRepository';
+
+const {Join, Message} = ESignal;
 
 class ChannelsRepository extends SharedRepository<TChannel>
   implements IChannelsRepository {
-  private readonly socket: Socket;
 
-  public constructor(socket: Socket) {
-    super();
-    this.socket = socket;
-  }
+  public join = (channel: TChannel) => this.socket.send(`${Join} #${channel}`);
 
-  public join = (channel: TChannel) => {
-    this.socket.send(`${ESignal.Join} #${channel}`);
-  };
-
-  public say = (message: string, channel?: TChannel) => {
-    if (!channel && !this.assignedPlace) {
-      throw new Error(
-        'Cannot send message due to channel is not ' +
-        'passed. Use assign() to assign channel to client, or pass ' +
-        'channel directly',
-      );
-    }
-    const targetChannel = channel || this.assignedPlace;
-    this.socket.send(`${ESignal.Message} #${targetChannel} :${message}`);
+  public say = (message: string, channel: TChannel) => {
+    this.socket.send(`${Message} #${channel} :${message}`);
   };
 
   public followersOnly = {
     ...this.createModeController('/followers'),
-    enable: (options: IFollowersOnlyOptions = {}) => {
-      const {duration, channel} = options;
+    enable: ({duration, channel}: IFollowersOnlyOptions) => {
       const message = '/followers' + (duration ? ` ${duration}` : '');
 
       this.say(message, channel);
     },
   };
 
-  public deleteMessage = (id: string, channel?: TChannel) => {
+  public deleteMessage = (id: string, channel: TChannel) => {
     this.say(`/delete ${id}`, channel);
   };
 
-  public playCommercial = (options: IPlayCommercialOptions = {}) => {
-    const {duration, channel} = options;
-
+  public playCommercial = ({duration, channel}: IPlayCommercialOptions) => {
     if (duration && duration < 0) {
       throw new Error('Duration must be more than 0');
     }
@@ -60,19 +42,17 @@ class ChannelsRepository extends SharedRepository<TChannel>
     this.say(message, channel);
   };
 
-  public host: TTargetedCommand = (targetChannel, channel?) => {
+  public host: TTargetedCommand = (targetChannel, channel) => {
     this.say(`/host ${targetChannel}`, channel);
   };
   public unhost = this.createChannelCommand('/unhost');
 
-  public raid: TTargetedCommand = (targetChannel, channel?) => {
+  public raid: TTargetedCommand = (targetChannel, channel) => {
     this.say(`/raid ${targetChannel}`, channel);
   };
   public unraid = this.createChannelCommand('/unraid');
 
-  public marker = (options: IMarkerOptions = {}) => {
-    const {comment, channel} = options;
-
+  public marker = ({channel, comment}: IMarkerOptions) => {
     const message = '/marker' + (comment ? ` ${comment}` : '');
     this.say(message, channel);
   };
@@ -82,6 +62,8 @@ class ChannelsRepository extends SharedRepository<TChannel>
 
   public vip = this.createUserCommand('/vip');
   public unvip = this.createUserCommand('/unvip');
+
+  public clear = this.createChannelCommand('/clear');
 }
 
 export default ChannelsRepository;

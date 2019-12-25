@@ -1,78 +1,67 @@
+import {ESignal, TChannel} from '../types';
+
 import {
-  IChannelsRepository,
+  IChannelsForkedRepository,
   IPlayCommercialOptions,
   IFollowersOnlyOptions,
   IMarkerOptions,
-  TTargetedCommand,
+  TChannelTargetedCommand,
 } from './types';
-import {ESignal, TChannel} from '../types';
 
-import SharedRepository from '../SharedRepository';
+import SharedForkedRepository, {
+  TPlaceCommand,
+  TUserCommand,
+} from '../SharedForkedRepository';
 
-class ChannelsRepository extends SharedRepository<TChannel>
-  implements IChannelsRepository {
+const {Join, Message} = ESignal;
 
-  public join = (channel: TChannel) => {
-    this.socket.send(`${ESignal.Join} #${channel}`);
-  };
+class ChannelsForkedRepository extends SharedForkedRepository<TChannel>
+  implements IChannelsForkedRepository {
 
-  public say = (message: string, channel: TChannel) => {
-    // const targetChannel = channel || this.assignedPlace;
-    //
-    // if (!targetChannel) {
-    //   throw new Error(
-    //     'Cannot send message due to channel is not passed. Use assign() to ' +
-    //     'assign channel to client, or pass channel directly',
-    //   );
-    // }
-    this.socket.send(`${ESignal.Message} #${channel} :${message}`);
+  public join = () => this.socket.send(`${Join} #${this.place}`);
+
+  public say = (message: string) => {
+    this.socket.send(`${Message} #${this.place} :${message}`);
   };
 
   public followersOnly = {
     ...this.createModeController('/followers'),
-    enable: (options: IFollowersOnlyOptions) => {
-      const {duration, channel} = options;
+    enable: ({duration} = {} as IFollowersOnlyOptions) => {
       const message = '/followers' + (duration ? ` ${duration}` : '');
 
-      this.say(message, channel);
+      this.say(message);
     },
   };
 
-  public deleteMessage = (id: string, channel: TChannel) => {
-    this.say(`/delete ${id}`, channel);
-  };
+  public deleteMessage = (id: string) => this.say(`/delete ${id}`);
 
-  public playCommercial = ({duration, channel}: IPlayCommercialOptions) => {
+  public playCommercial = ({duration} = {} as IPlayCommercialOptions) => {
     if (duration && duration < 0) {
       throw new Error('Duration must be more than 0');
     }
 
     const message = '/commercial' + (duration ? ` ${duration}` : '');
-    this.say(message, channel);
+    this.say(message);
   };
 
-  public host: TTargetedCommand = (targetChannel, channel) => {
-    this.say(`/host ${targetChannel}`, channel);
-  };
-  public unhost = this.createChannelCommand('/unhost');
-
-  public raid: TTargetedCommand = (targetChannel, channel) => {
-    this.say(`/raid ${targetChannel}`, channel);
-  };
-  public unraid = this.createChannelCommand('/unraid');
-
-  public marker = ({channel, comment}: IMarkerOptions) => {
+  public marker = ({comment} = {} as IMarkerOptions) => {
     const message = '/marker' + (comment ? ` ${comment}` : '');
-    this.say(message, channel);
+    this.say(message);
   };
 
-  public mod = this.createUserCommand('/mod');
-  public unmod = this.createUserCommand('/unmod');
+  public host: TChannelTargetedCommand = channel => this.say(`/host ${channel}`);
+  public unhost: TPlaceCommand = () => this.say('/unhost');
 
-  public vip = this.createUserCommand('/vip');
-  public unvip = this.createUserCommand('/unvip');
+  public raid: TChannelTargetedCommand = channel => this.say(`/raid ${channel}`);
+  public unraid: TPlaceCommand = () => this.say('/unraid');
 
-  public clear = this.createChannelCommand('/clear');
+  public mod: TUserCommand = user => this.say(`/mod ${user}`);
+  public unmod: TUserCommand = user => this.say(`/unmod ${user}`);
+
+  public vip: TUserCommand = user => this.say(`/vip ${user}`);
+  public unvip: TUserCommand = user => this.say(`/unvip ${user}`);
+
+  public clear: TPlaceCommand = () => this.say('/clear');
 }
 
-export default ChannelsRepository;
+export default ChannelsForkedRepository;

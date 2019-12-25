@@ -104,7 +104,7 @@ export function parseMetaValue(value: string): TMetaValue {
 
 /**
  * Parses IRC meta.
- * @returns {TMeta | null}
+ * @returns {IMeta | null}
  * @param metaRaw
  */
 export function parseMeta(metaRaw: string): IMeta | null {

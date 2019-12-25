@@ -1,6 +1,6 @@
 import Client, {ESignal} from '../lib';
 import {TTransformableEvent} from '../lib/EventsRepository';
-import {ESocketReadyState} from '../lib/socket';
+import {ESocketReadyState} from '../lib/Socket';
 
 const client = new Client();
 
@@ -61,8 +61,8 @@ printReadyState();
   });
 
   // Add event listener on socket opened
-  client.socket.on('open', onConnected);
-  client.socket.on('close', onDisconnected);
+  client.onConnected(onConnected);
+  client.onDisconnected(onDisconnected);
 
   await client.connect();
 })();

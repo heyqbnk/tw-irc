@@ -8,6 +8,7 @@ Here is a library that handles connection to Twitch IRC. It allows you to join o
     - [Basic](#basic)
     - [Authenticated client](#authenticated-client)
     - [Using channel commands](#using-channel-commands)
+    - [Forking channels and rooms](#forking-channels-and-rooms)
     - [Getting full control](#getting-full-control)
 - [Updates history](#updates-history)
 - [License](#license)
@@ -36,7 +37,7 @@ client.on(Message, ({message, author}) => {
 });
 
 // When socket connection is successfully opened, join "summit1g" channel.
-client.socket.on('open', () => {
+client.onConnected(() => {
   client.channels.join('summit1g');
 });
 
@@ -61,7 +62,7 @@ const client = new Client({
 });
 
 // When socket connection is successfully opened, join "summit1g" channel.
-client.socket.on('open', () => {
+client.onConnected(() => {
   // Join channel
   client.channels.join('summit1g');
   
@@ -79,7 +80,7 @@ import Client from 'tw-irc';
 
 const client = new Client();
 
-client.socket.on('open', () => {
+client.onConnected(() => {
   client.channels.join('summit1g');
   
   // Set emote only mode
@@ -87,6 +88,34 @@ client.socket.on('open', () => {
 
   // Ban some troll in channel
   client.channels.ban('troll5221', 'summit1g');
+});
+
+client.connect();
+```
+
+### Forking channels and rooms
+For easier usage you can create channels and rooms controllers from client.
+
+```typescript
+import Client from 'tw-irc';
+
+const client = new Client();
+
+client.onConnected(() => {
+  // Create channel controller for "summit1g" channel.
+  const summitChannel = client.forkChannel('summit1g');
+  
+  // Join channel
+  summitChannel.join();
+
+  // Say hi
+  summitChannel.say('Hello summit!');
+
+  // Set emote only mode
+  summitChannel.emoteOnly.enable();
+
+  // Ban some troll in channel
+  summitChannel.ban('troll5221');
 });
 
 client.connect();
@@ -100,7 +129,7 @@ import {prepareIRCMessage, parseIRCMessage} from 'tw-irc/utils';
 
 const client = new Client();
 
-client.socket.on('message', event => {
+client.onMessage(event => {
   // Convert raw socket message to array of messages. We need this action 
   // because commands can be concatenated in one message and doing this, 
   // we just detect them. 

@@ -2,30 +2,27 @@ import {
   ISharedRepository,
   TUserCommand as TGenericUserCommand,
   TPlaceCommand,
-  TPlaceTargetedCommand,
 } from '../SharedRepository';
 import {TChannel} from '../types';
 
 export type TUserCommand = TGenericUserCommand<TChannel>;
 export type TChannelCommand = TPlaceCommand<TChannel>;
-export type TTargetedCommand = TPlaceTargetedCommand<TChannel>;
+export type TTargetedCommand = (targetChannel: string, channel: TChannel) => void;
 
 export interface IOptionsWithDuration<T> {
   duration?: T;
-  channel?: TChannel;
+  channel: TChannel;
 }
 
-export interface IFollowersOnlyOptions
-  extends IOptionsWithDuration<string> {
+export interface IFollowersOnlyOptions extends IOptionsWithDuration<string> {
 }
 
-export interface IPlayCommercialOptions
-  extends IOptionsWithDuration<number> {
+export interface IPlayCommercialOptions extends IOptionsWithDuration<number> {
 }
 
 export interface IMarkerOptions {
   comment?: string;
-  channel?: string;
+  channel: string;
 }
 
 /**
@@ -36,7 +33,7 @@ export interface IChannelsRepository extends ISharedRepository<TChannel> {
    * Followers-only mode.
    */
   followersOnly: {
-    enable(options?: IFollowersOnlyOptions): void;
+    enable(options: IFollowersOnlyOptions): void;
     disable: TChannelCommand;
   };
   /**
@@ -44,17 +41,17 @@ export interface IChannelsRepository extends ISharedRepository<TChannel> {
    * @param id
    * @param channel
    */
-  deleteMessage(id: string, channel?: TChannel): void;
+  deleteMessage(id: string, channel: TChannel): void;
   /**
    * Plays commercial ads.
    * @param options
    */
-  playCommercial(options?: IPlayCommercialOptions): void;
+  playCommercial(options: IPlayCommercialOptions): void;
   /**
    * Leaves a marker with comment.
    * @param options
    */
-  marker(options?: IMarkerOptions): void;
+  marker(options: IMarkerOptions): void;
   /**
    * Hosts channel.
    */
@@ -87,4 +84,8 @@ export interface IChannelsRepository extends ISharedRepository<TChannel> {
    * Removes user's VIP status.
    */
   unvip: TUserCommand;
+  /**
+   * Clears chat.
+   */
+  clear: TChannelCommand;
 }

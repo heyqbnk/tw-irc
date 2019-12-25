@@ -1,119 +1,95 @@
 import {TPlace} from '../types';
 
-export type TUserCommand<Place extends TPlace> = (user: string, place?: Place) => void;
-export type TPlaceCommand<Place extends TPlace> = (place?: Place) => void;
-export type TPlaceTargetedCommand<Place extends TPlace> = (target: string, channel?: Place) => void;
+export type TUserCommand<P extends TPlace> = (user: string, place: P) => void;
+export type TPlaceCommand<P extends TPlace> = (place: P) => void;
 
-export interface IPlaceModeController<Place extends TPlace> {
-  enable: TPlaceCommand<Place>;
-  disable: TPlaceCommand<Place>;
+export interface IPlaceModeController<P extends TPlace> {
+  enable: TPlaceCommand<P>;
+  disable: TPlaceCommand<P>;
 }
 
-export interface ITimeoutOptions<Place extends TPlace> {
+export interface ITimeoutOptions<P extends TPlace> {
   user: string;
   duration?: string;
   reason?: string;
-  place?: Place;
+  place: P;
 }
 
-export interface ISlowmodeOptions<Place extends TPlace> {
+export interface ISlowmodeOptions<P extends TPlace> {
   duration?: number;
-  place?: Place;
+  place: P;
 }
 
-export interface IWhisperOptions<Place extends TPlace> {
+export interface IWhisperOptions<P extends TPlace> {
   user: string;
   message: string;
-  place?: Place;
+  place: P;
 }
 
-export interface ISharedRepository<Place extends TPlace> {
+export interface ISharedRepository<P extends TPlace> {
   /**
    * Bans user.
    */
-  ban: TUserCommand<Place>;
-
+  ban: TUserCommand<P>;
   /**
    * Unbans user.
    */
-  unban: TUserCommand<Place>;
-
+  unban: TUserCommand<P>;
   /**
    * Gives user a timeout.
    * @param options
    */
-  timeout(options: ITimeoutOptions<Place>): void;
-
+  timeout(options: ITimeoutOptions<P>): void;
   /**
    * Removes user's timeout.
    */
-  untimeout: TUserCommand<Place>;
-
+  untimeout: TUserCommand<P>;
   /**
    * Whispers someone.
    * @param options
    */
-  whisper(options: IWhisperOptions<Place>): void;
-
+  whisper(options: IWhisperOptions<P>): void;
   /**
    * Says a message to room.
    * @param {string} message
    * @param place
    */
-  say(message: string, place?: Place): void;
-
+  say(message: string, place: P): void;
   /**
    * Joins channel.
-   * @param options
+   * @param place
    */
-  join(options: Place): void;
-
+  join(place: P): void;
   /**
    * Leaves room.
-   * @param options
+   * @param place
    */
-  disconnect(options: Place): void;
-
+  disconnect(place: P): void;
   /**
    * Emote-only mode.
    */
-  emoteOnly: IPlaceModeController<Place>;
-
+  emoteOnly: IPlaceModeController<P>;
   /**
    * R9K mode.
    */
-  r9k: IPlaceModeController<Place>;
-
+  r9k: IPlaceModeController<P>;
   /**
    * Slowmode.
    */
   slowmode: {
-    enable(options?: ISlowmodeOptions<Place>): void;
-    disable: TPlaceCommand<Place>;
+    enable(options: ISlowmodeOptions<P>): void;
+    disable: TPlaceCommand<P>;
   };
-
-  /**
-   * Clears chat.
-   */
-  clear: TPlaceCommand<Place>;
-
   /**
    * Says a message, looking like we did something.
    * @param {string} action
    * @param place
    */
-  me(action: string, place?: Place): void;
-
+  me(action: string, place: P): void;
   /**
    * Changes our chat color.
    * @param {string} color
    * @param place
    */
-  changeColor(color: string, place?: Place): void;
-
-  /**
-   * Assigns place to repository
-   * @param {Place} place
-   */
-  assign(place?: Place): void;
+  changeColor(color: string, place: P): void;
 }

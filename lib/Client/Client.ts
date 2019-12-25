@@ -1,20 +1,18 @@
 import {IClient, IClientConstructorProps} from './types';
-import {IAuthInfo} from '../types';
+import {IAuthInfo, IRoom} from '../types';
 
 import Socket from '../Socket';
 import ChannelsRepository from '../ChannelsRepository';
-import EventsRepository, {TDetectListener} from '../EventsRepository';
+import ChannelsForkedRepository from '../ChannelsForkedRepository';
 import RoomsRepository from '../RoomsRepository';
+import RoomsForkedRepository from '../RoomsForkedRepository';
+import EventsRepository, {TDetectListener} from '../EventsRepository';
 
 import {generateRandomAuth, isPasswordValid} from './utils';
 import {ESignal} from '../types';
 
 class Client implements IClient {
-  /**
-   * Repository responsible for events binding.
-   */
   private events: EventsRepository;
-
   public readonly socket: Socket;
   public channels: ChannelsRepository;
   public rooms: RoomsRepository;
@@ -54,28 +52,39 @@ class Client implements IClient {
 
   public disconnect = () => this.socket.disconnect();
 
+  public onConnected = (callback: (e: Event) => any) => {
+    this.socket.on('open', callback);
+  };
+
+  public onDisconnected = (callback: (e: CloseEvent) => any) => {
+    this.socket.on('close', callback);
+  };
+
+  public onMessage = (callback: (e: MessageEvent) => void) => {
+    this.socket.on('message', callback);
+  };
+
+  public onError = (callback: (e: Event) => void) => {
+    this.socket.on('error', callback);
+  };
+
   public on = <Event extends ESignal | string>(
     event: Event,
     listener: TDetectListener<Event>,
-  ) => {
-    this.events.on(event, listener);
-  };
+  ) => this.events.on(event, listener);
 
   public off = <Event extends ESignal | string>(
     event: Event,
     listener: TDetectListener<Event>,
-  ) => {
-    this.events.off(event, listener);
+  ) => this.events.off(event, listener);
+
+  public forkChannel = (channel: string) => {
+    return new ChannelsForkedRepository(this.socket, channel);
   };
 
-  public assignChannel = (channel: string) => {
-    this.channels.assign(channel);
-  };
-
-  public assignRoom = (room: {channelId: string; roomUuid: string}) => {
-    this.rooms.assign(room);
+  public forkRoom = (room: IRoom) => {
+    return new RoomsForkedRepository(this.socket, room);
   };
 }
 
-export {Client};
 export default Client;

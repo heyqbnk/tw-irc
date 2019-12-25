@@ -1,10 +1,11 @@
-import Socket from '../Socket';
-
-import ChannelsRepository from '../ChannelsRepository';
-import RoomsRepository from '../RoomsRepository';
-import {TListeningManipulator} from '../EventsRepository';
-
 import {IAuthInfo, IRoom} from '../types';
+
+import {ISocket} from '../Socket';
+import {TListeningManipulator} from '../EventsRepository';
+import {IRoomsRepository} from '../RoomsRepository';
+import {IRoomsForkedRepository} from '../RoomsForkedRepository';
+import {IChannelsRepository} from '../ChannelsRepository';
+import {IChannelsForkedRepository} from '../ChannelsForkedRepository';
 
 export interface IClientConstructorProps {
   auth?: IAuthInfo;
@@ -18,15 +19,15 @@ export interface IClient {
   /**
    * Socket instance. Used to create connection to IRC.
    */
-  socket: Socket;
+  socket: ISocket;
   /**
    * Repository to work with channels.
    */
-  channels: ChannelsRepository;
+  channels: IChannelsRepository;
   /**
    * Repository to communicate with users.
    */
-  rooms: RoomsRepository;
+  rooms: IRoomsRepository;
   /**
    * Create a client connection to IRC.
    */
@@ -45,13 +46,33 @@ export interface IClient {
    */
   off: TListeningManipulator;
   /**
-   * Binds this client to passed channel.
-   * @param {string} channel
+   * Shortcut to socket.on('open').
+   * @param callback
    */
-  assignChannel(channel: string): void;
+  onConnected(callback: (e: Event) => any): void;
   /**
-   * Binds this client to passed room.
+   * Shortcut to socket.on('close').
+   * @param callback
+   */
+  onDisconnected(callback: (e: CloseEvent) => any): void;
+  /**
+   * Shortcut to socket.on('error').
+   * @param callback
+   */
+  onError(callback: (e: Event) => any): void;
+  /**
+   * Shortcut to socket.on('close').
+   * @param callback
+   */
+  onMessage(callback: (e: MessageEvent) => any): void;
+  /**
+   * Returns channels repository for passed channel.
+   * @param channel
+   */
+  forkChannel(channel: string): IChannelsForkedRepository;
+  /**
+   * Returns rooms repository for passed room.
    * @param room
    */
-  assignRoom(room: IRoom): void;
+  forkRoom(room: IRoom): IRoomsForkedRepository;
 }

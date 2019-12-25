@@ -1,38 +1,22 @@
 import {
-  ISharedRepository,
-  TUserCommand,
-  TPlaceCommand,
+  ISharedForkedRepository,
   IPlaceModeController,
   ITimeoutOptions,
-  IWhisperOptions, ISlowmodeOptions,
+  IWhisperOptions,
+  ISlowmodeOptions,
 } from './types';
 import {TPlace} from '../types';
 import {ISocket} from '../Socket';
 
-abstract class SharedRepository<P extends TPlace>
-  implements ISharedRepository<P> {
+abstract class SharedForkedRepository<P extends TPlace>
+  implements ISharedForkedRepository {
   protected socket: ISocket;
+  protected place: P;
 
-  public constructor(socket: ISocket) {
+  public constructor(socket: ISocket, place: P) {
     this.socket = socket;
+    this.place = place;
   }
-
-  /**
-   * User-oriented commands generator.
-   * @param {string} command
-   * @returns {TUserCommand}
-   */
-  protected createUserCommand = (command: string): TUserCommand<P> => {
-    return (user, place) => this.say(`${command} ${user}`, place);
-  };
-
-  /**
-   * Channel-oriented commands generator
-   * @param command
-   */
-  protected createChannelCommand = (command: string): TPlaceCommand<P> => {
-    return place => this.say(command, place);
-  };
 
   /**
    * Mode-oriented commands generator.
@@ -40,23 +24,19 @@ abstract class SharedRepository<P extends TPlace>
    * @returns {{off: (channel?: string) => void;
    * on: (channel?: string) => void}}
    */
-  protected createModeController = (
-    mode: string,
-  ): IPlaceModeController<P> => ({
-    enable: place => this.say(mode, place),
-    disable: place => this.say(`${mode}off`, place),
+  protected createModeController = (mode: string): IPlaceModeController => ({
+    enable: () => this.say(mode),
+    disable: () => this.say(`${mode}off`),
   });
 
-  public abstract say(message: string, place: P): void;
+  public abstract say(message: string): void;
+  public abstract join(): void;
 
-  public abstract join(place: P): void;
+  public ban = (user: string) => this.say(`/ban ${user}`);
+  public unban = (user: string) => this.say(`/unban ${user}`);
 
-  public ban = this.createUserCommand('/ban');
-
-  public unban = this.createUserCommand('/unban');
-
-  public timeout = (options: ITimeoutOptions<P>) => {
-    const {user, duration, reason, place} = options;
+  public untimeout = (user: string) => this.say(`/untimeout ${user}`);
+  public timeout = ({user, duration, reason}: ITimeoutOptions) => {
     const message = ['/timeout', user];
 
     if (duration) {
@@ -67,17 +47,14 @@ abstract class SharedRepository<P extends TPlace>
       message.push(reason);
     }
 
-    this.say(message.join(' '), place);
+    this.say(message.join(' '));
   };
 
-  public untimeout = this.createUserCommand('/untimeout');
-
-  public whisper = (options: IWhisperOptions<P>) => {
-    const {user, message, place} = options;
-    this.say(`/w ${user} ${message}`, place);
+  public whisper = ({user, message}: IWhisperOptions) => {
+    this.say(`/w ${user} ${message}`);
   };
 
-  public disconnect = this.createChannelCommand('/disconnect');
+  public disconnect = () => this.say('/disconnect');
 
   public emoteOnly = this.createModeController('/emoteonly');
 
@@ -85,25 +62,18 @@ abstract class SharedRepository<P extends TPlace>
 
   public slowmode = {
     ...this.createModeController('/slow'),
-    enable: (options?: ISlowmodeOptions<P>) => {
-      const {duration, place} = options;
-
+    enable: ({duration} = {} as ISlowmodeOptions) => {
       if (duration && duration < 0) {
         throw new Error('Duration must be more than 0');
       }
 
       const message = '/slow' + (duration ? ` ${duration}` : '');
-      this.say(message, place);
+      this.say(message);
     },
   };
 
-  public me(action: string, place: P) {
-    this.say(`/me ${action}`, place);
-  };
-
-  public changeColor(color: string, place: P) {
-    this.say(`/color ${color}`, place);
-  };
+  public me = (action: string) => this.say(`/me ${action}`);
+  public changeColor = (color: string) => this.say(`/color ${color}`);
 }
 
-export default SharedRepository;
+export default SharedForkedRepository;

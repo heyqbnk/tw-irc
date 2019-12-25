@@ -1,4 +1,4 @@
-import { Client } from '../Client';
+import Client from '../Client';
 import * as utils from '../utils';
 import { ESignal } from '../../types';
 import { mockWebSocket } from '../../__mocks__/websocket';
@@ -62,24 +62,6 @@ describe('client', () => {
       client.off(command, listener);
 
       expect(spy).toHaveBeenCalledWith(command, listener);
-    });
-
-    it('"assignChannel" should call channels.assign', () => {
-      const client = new Client();
-      const channel = 'some channel';
-      const spy = jest.spyOn(client.channels, 'assign');
-      client.assignChannel(channel);
-
-      expect(spy).toBeCalledWith(channel);
-    });
-
-    it('"assignRoom" should call rooms.assign', () => {
-      const client = new Client();
-      const room = { channelId: '123', roomUuid: '2312' };
-      const spy = jest.spyOn(client.rooms, 'assign');
-      client.assignRoom(room);
-
-      expect(spy).toBeCalledWith(room);
     });
   });
 });

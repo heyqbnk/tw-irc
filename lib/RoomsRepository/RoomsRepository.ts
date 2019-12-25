@@ -1,30 +1,15 @@
 import {ESignal, IRoom} from '../types';
 import SharedRepository from '../SharedRepository';
-import Socket from '../Socket';
+import {IRoomsRepository} from './types';
 
-class RoomsRepository extends SharedRepository<IRoom> {
-  private readonly socket: Socket;
-
-  public constructor(socket: Socket) {
-    super();
-    this.socket = socket;
-  }
+class RoomsRepository extends SharedRepository<IRoom>
+  implements IRoomsRepository {
 
   public join = ({channelId, roomUuid}: IRoom) => {
     this.socket.send(`${ESignal.Join} #chatrooms:${channelId}:${roomUuid}`);
   };
 
-  public say = (message: string, room?: IRoom) => {
-    const targetRoom = room || this.assignedPlace;
-
-    if (!targetRoom) {
-      throw new Error(
-        'Cannot send message due to room is not ' +
-        'passed. Use assign() to assign room to client, or pass ' +
-        'room directly',
-      );
-    }
-    const {channelId, roomUuid} = targetRoom;
+  public say = (message: string, {channelId, roomUuid}: IRoom) => {
     this.socket.send(
       `${ESignal.Message} #chatrooms:${channelId}:${roomUuid} :${message}`,
     );

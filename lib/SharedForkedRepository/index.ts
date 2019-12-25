@@ -1,2 +1,2 @@
 export * from './types';
-export {default} from './SharedRepository'
+export {default} from './SharedForkedRepository'

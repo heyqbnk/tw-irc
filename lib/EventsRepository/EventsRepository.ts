@@ -4,18 +4,18 @@ import {
   TDetectListener,
   TTransformableEvent,
 } from './types';
+import {ISocket} from '../Socket';
 import {parseIRCMessage, prepareIRCMessage} from '../utils';
 import transformers from './transformers';
 
-import Socket from '../Socket';
 import {isSignalListener} from './utils';
 
 class EventsRepository implements IEventsRepository {
   private readonly listeners: TListener[] = [];
-  private readonly socket: Socket;
+  private readonly socket: ISocket;
   private readonly login: string;
 
-  public constructor(socket: Socket, login: string) {
+  public constructor(socket: ISocket, login: string) {
     this.login = login.toLowerCase();
     this.socket = socket;
     this.socket.on('message', this.onMessage);

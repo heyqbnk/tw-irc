@@ -1,2 +1,2 @@
 export * from './types';
-export {default} from './ChannelsRepository';
+export {default} from './ChannelsForkedRepository';

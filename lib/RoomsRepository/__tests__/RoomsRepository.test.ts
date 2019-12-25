@@ -37,30 +37,6 @@ describe('repositories', () => {
           expect(spy)
             .toHaveBeenCalledWith(`PRIVMSG #chatrooms:${channelId}:${roomUuid} :${message}`);
         });
-
-        it('should send "PRIVMSG #chatrooms:{channelId}:{roomUuid} :{message}" ' +
-          'if room is not passed but assigned', () => {
-          const socket = mkSocket();
-          const repo = new RoomsRepository(socket);
-          const room = {channelId: 'channel', roomUuid: '923199'};
-          const {channelId, roomUuid} = room;
-          const message = 'Hey!';
-          const spy = jest.spyOn(getSocket(socket), 'send')
-            .mockImplementationOnce(jest.fn);
-
-          repo.assign(room);
-          repo.say(message);
-
-          expect(spy)
-            .toHaveBeenCalledWith(`PRIVMSG #chatrooms:${channelId}:${roomUuid} :${message}`);
-        });
-
-        it('should throw an error if channel is not passed and not assigned', () => {
-          const socket = mkSocket();
-          const repo = new RoomsRepository(socket);
-
-          expect(() => repo.say('')).toThrow();
-        });
       });
     });
   });

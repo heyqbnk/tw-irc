@@ -1,7 +1,7 @@
 // @ts-nocheck
 import ChannelsRepository from '../ChannelsRepository';
 import Socket from '../../Socket';
-import { mkSocket as mockSocket } from '../../__mocks__/socket';
+import {mkSocket as mockSocket} from '../../__mocks__/socket';
 
 import each from 'jest-each';
 
@@ -56,21 +56,6 @@ describe('repositories', () => {
           expect(spy).toHaveBeenCalledWith(`PRIVMSG #${channel} :${message}`);
         });
 
-        it('should send "PRIVMSG #{channel} :{message}" if channel is ' +
-          'not passed but assigned', () => {
-          const socket = mkSocket();
-          const repo = new ChannelsRepository(socket);
-          const channel = 'channel';
-          const message = 'Hey!';
-          const spy = jest.spyOn(getSocket(socket), 'send')
-            .mockImplementationOnce(jest.fn);
-
-          repo.assign(channel);
-          repo.say(message);
-
-          expect(spy).toHaveBeenCalledWith(`PRIVMSG #${channel} :${message}`);
-        });
-
         it('should throw an error if channel is not passed and not assigned', () => {
           const socket = mkSocket();
           const repo = new ChannelsRepository(socket);
@@ -103,18 +88,6 @@ describe('repositories', () => {
         });
 
         describe('enable', () => {
-          it('should say "/followers" and {channel} if options ' +
-            'are not passed', () => {
-            const socket = mkSocket();
-            const repo = new ChannelsRepository(socket);
-            const spy = jest.spyOn(repo, 'say')
-              .mockImplementationOnce(jest.fn);
-
-            repo.followersOnly.enable();
-
-            expect(spy).toHaveBeenCalledWith('/followers', undefined);
-          });
-
           it('should say "/followers {duration}" and {channel} ' +
             'if duration in options is passed', () => {
             const socket = mkSocket();
@@ -124,7 +97,7 @@ describe('repositories', () => {
             const spy = jest.spyOn(repo, 'say')
               .mockImplementationOnce(jest.fn);
 
-            repo.followersOnly.enable({ duration, channel });
+            repo.followersOnly.enable({duration, channel});
 
             expect(spy).toHaveBeenCalledWith(`/followers ${duration}`, channel);
           });
@@ -147,18 +120,6 @@ describe('repositories', () => {
       });
 
       describe('playCommercial', () => {
-        it('should say "/commercial" and {channel} if options ' +
-          'are not passed', () => {
-          const socket = mkSocket();
-          const repo = new ChannelsRepository(socket);
-          const spy = jest.spyOn(repo, 'say')
-            .mockImplementationOnce(jest.fn);
-
-          repo.playCommercial();
-
-          expect(spy).toHaveBeenCalledWith('/commercial', undefined);
-        });
-
         it('should say "/commercial {duration}" and {channel} ' +
           'if duration in options is passed', () => {
           const socket = mkSocket();
@@ -168,7 +129,7 @@ describe('repositories', () => {
           const spy = jest.spyOn(repo, 'say')
             .mockImplementationOnce(jest.fn);
 
-          repo.playCommercial({ duration, channel });
+          repo.playCommercial({duration, channel});
 
           expect(spy).toHaveBeenCalledWith(`/commercial ${duration}`, channel);
         });
@@ -178,25 +139,11 @@ describe('repositories', () => {
           const repo = new ChannelsRepository(socket);
           const duration = -20;
 
-          expect(() => repo.playCommercial({ duration })).toThrow();
+          expect(() => repo.playCommercial({duration})).toThrow();
         });
       });
 
       describe('marker', () => {
-        it('should say "/marker" and {channel} if options ' +
-          'are not passed', () => {
-          const socket = mkSocket();
-          const repo = new ChannelsRepository(socket);
-          const channel = 'channel';
-          const spy = jest.spyOn(repo, 'say')
-            .mockImplementationOnce(jest.fn);
-          repo.assign(channel);
-
-          repo.marker();
-
-          expect(spy).toHaveBeenCalledWith('/marker', undefined);
-        });
-
         it('should say "/marker {comment}" and {channel} ' +
           'if comment in options is passed', () => {
           const socket = mkSocket();
@@ -206,7 +153,7 @@ describe('repositories', () => {
           const spy = jest.spyOn(repo, 'say')
             .mockImplementationOnce(jest.fn);
 
-          repo.marker({ comment, channel });
+          repo.marker({comment, channel});
 
           expect(spy).toHaveBeenCalledWith(`/marker ${comment}`, channel);
         });
@@ -266,7 +213,7 @@ describe('repositories', () => {
           const spy = jest.spyOn(repo, 'say')
             .mockImplementationOnce(jest.fn);
 
-          repo.whisper({ message, user, place: channel });
+          repo.whisper({message, user, place: channel});
           expect(spy).toHaveBeenCalledWith(`/w ${user} ${message}`, channel);
         });
       });

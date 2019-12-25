@@ -1,38 +1,38 @@
 import {
   ISharedRepository,
   TUserCommand,
-  IPlaceModeController,
   TPlaceCommand,
+  IPlaceModeController,
   ITimeoutOptions,
   IWhisperOptions, ISlowmodeOptions,
 } from './types';
 import {TPlace} from '../types';
+import {ISocket} from '../Socket';
 
-abstract class SharedRepository<Place extends TPlace>
-  implements ISharedRepository<Place> {
-  /**
-   * Assigned to repository place.
-   */
-  protected assignedPlace: Place;
+abstract class SharedRepository<P extends TPlace>
+  implements ISharedRepository<P> {
+  protected socket: ISocket;
+
+  public constructor(socket: ISocket) {
+    this.socket = socket;
+  }
 
   /**
    * User-oriented commands generator.
    * @param {string} command
    * @returns {TUserCommand}
    */
-  protected createUserCommand = (command: string): TUserCommand<Place> => {
+  protected createUserCommand = (command: string): TUserCommand<P> => {
     return (user, place) => this.say(`${command} ${user}`, place);
   };
 
   /**
-   * Channel-oriented commands generator.
-   * @param {string} command
-   * @returns {TPlaceCommand}
+   * Channel-oriented commands generator
+   * @param command
    */
-  protected createChannelCommand =
-    (command: string): TPlaceCommand<Place> => {
-      return place => this.say(command, place);
-    };
+  protected createChannelCommand = (command: string): TPlaceCommand<P> => {
+    return place => this.say(command, place);
+  };
 
   /**
    * Mode-oriented commands generator.
@@ -42,20 +42,20 @@ abstract class SharedRepository<Place extends TPlace>
    */
   protected createModeController = (
     mode: string,
-  ): IPlaceModeController<Place> => ({
-    enable: (place?) => this.say(mode, place),
-    disable: (place?) => this.say(`${mode}off`, place),
+  ): IPlaceModeController<P> => ({
+    enable: place => this.say(mode, place),
+    disable: place => this.say(`${mode}off`, place),
   });
 
-  public abstract say(message: string, place?: Place): void;
+  public abstract say(message: string, place: P): void;
 
-  public abstract join(place: Place): void;
+  public abstract join(place: P): void;
 
   public ban = this.createUserCommand('/ban');
 
   public unban = this.createUserCommand('/unban');
 
-  public timeout = (options: ITimeoutOptions<Place>) => {
+  public timeout = (options: ITimeoutOptions<P>) => {
     const {user, duration, reason, place} = options;
     const message = ['/timeout', user];
 
@@ -72,7 +72,7 @@ abstract class SharedRepository<Place extends TPlace>
 
   public untimeout = this.createUserCommand('/untimeout');
 
-  public whisper = (options: IWhisperOptions<Place>) => {
+  public whisper = (options: IWhisperOptions<P>) => {
     const {user, message, place} = options;
     this.say(`/w ${user} ${message}`, place);
   };
@@ -85,7 +85,7 @@ abstract class SharedRepository<Place extends TPlace>
 
   public slowmode = {
     ...this.createModeController('/slow'),
-    enable: (options: ISlowmodeOptions<Place> = {}) => {
+    enable: (options: ISlowmodeOptions<P>) => {
       const {duration, place} = options;
 
       if (duration && duration < 0) {
@@ -97,17 +97,13 @@ abstract class SharedRepository<Place extends TPlace>
     },
   };
 
-  public clear = this.createChannelCommand('/clear');
-
-  public me = (action: string, place?: Place) => {
+  public me(action: string, place: P) {
     this.say(`/me ${action}`, place);
   };
 
-  public changeColor = (color: string, place?: Place) => {
+  public changeColor(color: string, place: P) {
     this.say(`/color ${color}`, place);
   };
-
-  public assign = (place: Place) => this.assignedPlace = place;
 }
 
 export default SharedRepository;

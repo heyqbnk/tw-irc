@@ -5,6 +5,7 @@
     "module": "esnext",
     "declaration": true,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "declarationMap": true,
     "noUnusedLocals": true,

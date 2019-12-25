@@ -1,50 +1,41 @@
 import {
-  ISharedRepository,
-  TUserCommand as TGenericUserCommand,
+  ISharedForkedRepository,
+  TUserCommand,
   TPlaceCommand,
-  TPlaceTargetedCommand,
-} from '../SharedRepository';
-import {TChannel} from '../types';
+} from '../SharedForkedRepository';
 
-export type TUserCommand = TGenericUserCommand<TChannel>;
-export type TChannelCommand = TPlaceCommand<TChannel>;
-export type TTargetedCommand = TPlaceTargetedCommand<TChannel>;
+export type TChannelTargetedCommand = (channel: string) => void;
 
 export interface IOptionsWithDuration<T> {
   duration?: T;
-  channel: TChannel;
 }
 
-export interface IFollowersOnlyOptions
-  extends IOptionsWithDuration<string> {
+export interface IFollowersOnlyOptions extends IOptionsWithDuration<string> {
 }
 
-export interface IPlayCommercialOptions
-  extends IOptionsWithDuration<number> {
+export interface IPlayCommercialOptions extends IOptionsWithDuration<number> {
 }
 
 export interface IMarkerOptions {
   comment?: string;
-  channel: string;
 }
 
 /**
  * Implementation class for ChannelsRepository class.
  */
-export interface IChannelsRepository extends ISharedRepository<TChannel> {
+export interface IChannelsForkedRepository extends ISharedForkedRepository {
   /**
    * Followers-only mode.
    */
   followersOnly: {
     enable(options?: IFollowersOnlyOptions): void;
-    disable: TChannelCommand;
+    disable: TPlaceCommand;
   };
   /**
    * Deletes message from channel.
    * @param id
-   * @param channel
    */
-  deleteMessage(id: string, channel?: TChannel): void;
+  deleteMessage(id: string): void;
   /**
    * Plays commercial ads.
    * @param options
@@ -58,19 +49,19 @@ export interface IChannelsRepository extends ISharedRepository<TChannel> {
   /**
    * Hosts channel.
    */
-  host: TTargetedCommand;
+  host: TChannelTargetedCommand;
   /**
    * Unhosts.
    */
-  unhost: TChannelCommand;
+  unhost: TPlaceCommand;
   /**
    * Raids channel.
    */
-  raid: TTargetedCommand;
+  raid: TChannelTargetedCommand;
   /**
    * Unraids.
    */
-  unraid: TChannelCommand;
+  unraid: TPlaceCommand;
   /**
    * Mods user.
    */
@@ -90,5 +81,5 @@ export interface IChannelsRepository extends ISharedRepository<TChannel> {
   /**
    * Clears chat.
    */
-  clear: TChannelCommand;
+  clear: TPlaceCommand;
 }

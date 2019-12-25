@@ -1,4 +1,22 @@
 # Updates history
+### Release 5.0.0
+#### Client
+- Added shortcut methods `onConnect`, `onDisconnect`, `onMessage` and `onError`
+for socket events;
+- Added `forkRoom` and `forkChannel` methods returning instances of 
+`RoomsForkedRepository` and `ChannelsForkedRepository`. It is useful when you 
+don't want to always pass `place` parameter in channels and rooms repositories.
+- Removed `assignRoom` and `assignChannel` methods due to unpredictable behaviour
+during long processes. Replaced with `forkRoom` and `forkChannel`;
+
+#### EventsRepository
+- Removed `clear` method due to it is not supported;
+
+#### RoomsRepository and ChannelsRepository
+- `assign` method removed. Use `Client` fork methods instead;
+- `place` parameter in methods is required now. Use `Client` fork methods
+to escape this problem;
+
 ### Release 4.0.0
 - Project folders were flatten for easier usage;
 - Some folders were renamed;
