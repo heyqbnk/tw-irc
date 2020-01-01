@@ -2,6 +2,7 @@ import {ISocket} from '../Socket';
 import {IEventsRepository} from '../EventsRepository';
 import {IChannelsRepository} from '../ChannelsRepository';
 import {IChannelsForkedRepository} from '../ChannelsForkedRepository';
+import {ICloseEvent, IMessageEvent} from 'websocket';
 
 export interface IAuthInfo {
   login: string;
@@ -48,25 +49,25 @@ export interface IClient {
    * @param callback
    * @param once
    */
-  onConnected(callback: (e: Event) => any, once?: boolean): void;
+  onConnected(callback: () => any, once?: boolean): void;
   /**
    * Shortcut to socket.on('close').
    * @param callback
    * @param once
    */
-  onDisconnected(callback: (e: CloseEvent) => any, once?: boolean): void;
+  onDisconnected(callback: (e: ICloseEvent) => any, once?: boolean): void;
   /**
    * Shortcut to socket.on('error').
    * @param callback
    * @param once
    */
-  onError(callback: (e: Event) => any, once?: boolean): void;
+  onError(callback: (e: Error) => any, once?: boolean): void;
   /**
    * Shortcut to socket.on('close').
    * @param callback
    * @param once
    */
-  onMessage(callback: (e: MessageEvent) => any, once?: boolean): void;
+  onMessage(callback: (e: IMessageEvent) => any, once?: boolean): void;
   /**
    * Returns channels repository for passed channel. Useful when you dont want
    * to always pass channel parameter while calling client.channels methods.

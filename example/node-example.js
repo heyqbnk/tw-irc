@@ -1,5 +1,5 @@
-import Client, {ECommand, ESocketReadyState} from '../src';
-import {TKnownEvent} from '../src/EventsRepository';
+const {default: Client} = require('../dist');
+const {ECommand, ESocketReadyState} = require('../dist/types');
 
 const client = new Client({
   channels: ['pestily'],
@@ -31,7 +31,7 @@ function printReadyState() {
 printReadyState();
 
 (async () => {
-  const commands: TKnownEvent[] = [
+  const commands = [
     ClearChat, ClearMessage, GlobalUserState, Host, Join, Leave,
     Message, Notice, Reconnect, RoomState, UserNotice, UserState,
   ];
@@ -49,17 +49,17 @@ printReadyState();
   client.onDisconnected(onDisconnected);
 
   commands.forEach(c => {
-    client.on(c, (data: any) => {
+    client.on(c, data => {
       console.log(`Command: %c${c}`, 'font-weight: bold', data);
     });
-  })
+  });
 
   client.connect();
 })();
 
 // Webpack Hot Module Reload feature
-if ((module as any).hot) {
-  (module as any).hot.accept(() => {
+if (module.hot) {
+  module.hot.accept(() => {
     window.location.reload();
   });
 }

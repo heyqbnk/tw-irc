@@ -1,5 +1,6 @@
 import {IAuthInfo, IClient, IClientConstructorProps} from './types';
 import {ECommand} from '../types';
+import {ICloseEvent, IMessageEvent} from 'websocket';
 
 import Socket, {ISocket} from '../Socket';
 import ChannelsRepository from '../ChannelsRepository';
@@ -80,15 +81,15 @@ class Client implements IClient {
   };
 
   public onDisconnected = (
-    callback: (e: CloseEvent) => any,
+    callback: (e: ICloseEvent) => any,
     once?: boolean,
   ) => this.socket.on('close', callback, once);
 
-  public onMessage = (callback: (e: MessageEvent) => void, once?: boolean) => {
+  public onMessage = (callback: (e: IMessageEvent) => void, once?: boolean) => {
     this.socket.on('message', callback, once);
   };
 
-  public onError = (callback: (e: Event) => void, once?: boolean) => {
+  public onError = (callback: (e: Error) => void, once?: boolean) => {
     this.socket.on('error', callback, once);
   };
 

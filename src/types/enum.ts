@@ -182,3 +182,13 @@ export enum EUserNoticeMessageId {
   SubscriberMysteryGift = 'submysterygift',
   Unraid = 'unraid',
 }
+
+/**
+ * List of states of socket connection.
+ */
+export enum ESocketReadyState {
+  Connecting = 0,
+  Open = 1,
+  Closing = 2,
+  Closed = 3,
+}

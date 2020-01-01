@@ -1,3 +1,6 @@
+import {ESocketReadyState} from '../types';
+import {ICloseEvent, IMessageEvent} from 'websocket';
+
 export interface ISocketConstructorProps {
   /**
    * Sets security connection security level.
@@ -5,32 +8,31 @@ export interface ISocketConstructorProps {
   secure?: boolean;
 }
 
+export interface IWebSocketEventMap {
+  close: ICloseEvent;
+  error: Error;
+  message: IMessageEvent;
+  open: undefined;
+}
+
+export type TWebSocketEvent = keyof IWebSocketEventMap;
+
 export interface IListener {
-  eventName: keyof WebSocketEventMap;
-  listener(ev: Event): void;
+  eventName: TWebSocketEvent;
+  listener(data?: any): any;
   once: boolean;
 }
 
-export type TAddEventListener = <K extends keyof WebSocketEventMap>(
+export type TAddEventListener = <K extends TWebSocketEvent>(
   type: K,
-  listener: (this: WebSocket, ev: WebSocketEventMap[K]) => any,
+  listener: (ev: IWebSocketEventMap[K]) => any,
   once?: boolean,
 ) => void;
 
-export type TRemoveEventListener = <K extends keyof WebSocketEventMap>(
+export type TRemoveEventListener = <K extends TWebSocketEvent>(
   type: K,
-  listener: (this: WebSocket, ev: WebSocketEventMap[K]) => any,
+  listener: (ev: IWebSocketEventMap[K]) => any,
 ) => void;
-
-/**
- * List of states of socket connection.
- */
-export enum ESocketReadyState {
-  Connecting = 0,
-  Open = 1,
-  Closing = 2,
-  Closed = 3,
-}
 
 /**
  * Implementation for Socket class.

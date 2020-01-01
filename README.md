@@ -3,6 +3,8 @@
 Here is a library that handles connection to Twitch IRC. It allows you to join 
 or leave channels, detect and send new messages and other.
 
+Compatible for both `node` and `browser`. 
+
 ## Table of contents
 - [Install](#install)
 - [Usage](#usage)
@@ -11,6 +13,8 @@ or leave channels, detect and send new messages and other.
     - [Using channel commands](#using-channel-commands)
     - [Forking channels and rooms](#forking-channels-and-rooms)
     - [Getting full control](#getting-full-control)
+    - [Sandbox](#sandbox)
+- [Example](#example)
 - [Updates history](#updates-history)
 - [License](#license)
 
@@ -146,9 +150,19 @@ client.onMessage(event => {
 client.connect();
 ```
 
-### Sandbox
-You can use an [example](https://github.com/wolframdeus/tw-irc/blob/master/example/index.ts), 
-which is watching for each available command. To try it, clone this repo and use `yarn dev` or `npm run dev` to run. 
+## Example
+There are 2 examples for [node](https://github.com/wolframdeus/tw-irc/blob/master/example/node-example.js) 
+and [browser](https://github.com/wolframdeus/tw-irc/blob/master/example/index.ts).
+
+Running node version:
+1. Clone repo;
+2. Type `yarn dev-node` or `npm run dev-node`;
+
+Running browser version:
+1. Clone repo;
+2. Type `yarn dev` or `npm run dev`;
+3. Open browser and go to `http://localhost:9000`;
+4. Open console; 
 
 ## Updates history
 You can find updates history [here](https://github.com/wolframdeus/tw-irc/blob/master/updates-history.md).

@@ -3,6 +3,7 @@ import {
   IEventsRepository,
   TListeningManipulator,
 } from './types';
+import {IMessageEvent} from 'websocket';
 import {ISocket} from '../Socket';
 
 import transformers from './transformers';
@@ -21,7 +22,7 @@ class EventsRepository implements IEventsRepository {
    * Parses incoming message and triggers event listeners.
    * @param {MessageEvent} event
    */
-  private onMessage = (event: MessageEvent) => {
+  private onMessage = (event: IMessageEvent) => {
     const preparedMessages = prepareIRCMessage(event.data as string);
 
     preparedMessages.forEach(message => {

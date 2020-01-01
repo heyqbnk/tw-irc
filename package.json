@@ -1,6 +1,6 @@
 {
   "name": "tw-irc",
-  "version": "6.0.1",
+  "version": "6.1.1",
   "description": "TypeScript library for working with Twitch IRC",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,9 +31,10 @@
   ],
   "scripts": {
     "preversion": "yarn lint && yarn build",
-    "build": "tsc",
+    "build": "gulp",
     "lint": "eslint --fix ./src/**/*.ts",
     "dev": "webpack-dev-server",
+    "dev-node": "node examples/node-example.js",
     "test": "jest --config jest.config.js"
   },
   "husky": {
@@ -48,6 +49,7 @@
     "@types/jest": "^24.0.15",
     "@types/jest-each": "^0.3.4",
     "@types/node": "^13.1.2",
+    "@types/websocket": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^2.12.0",
     "@typescript-eslint/parser": "^2.12.0",
     "babel-loader": "^8.0.6",
@@ -63,7 +65,12 @@
     "jest-each": "^24.8.0",
     "ts-jest": "^24.0.2",
     "ts-loader": "^6.0.4",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.3",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "websocket": "^1.0.31"
+  }
 }

@@ -1,0 +1,29 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "preserveConstEnums": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "baseUrl": ".",
+    "lib": [
+      "dom",
+      "esnext"
+    ],
+    "outDir": "./dist"
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

@@ -1,13 +1,13 @@
 import {
-  ESocketReadyState,
   IListener,
   ISocket,
-  ISocketConstructorProps,
+  ISocketConstructorProps, IWebSocketEventMap,
   TAddEventListener,
-  TRemoveEventListener,
+  TRemoveEventListener, TWebSocketEvent,
 } from './types';
+import {IMessageEvent, w3cwebsocket as WebSocket} from 'websocket';
 
-import {ECommand} from '../types';
+import {ECommand, ESocketReadyState} from '../types';
 
 import {parseIRCMessage, prepareIRCMessage} from '../utils';
 
@@ -29,7 +29,7 @@ class Socket implements ISocket {
    * This listener is required to detect Twitch PING message to respond
    * with PONG.
    */
-  private onMessage = (event: MessageEvent) => {
+  private onMessage = (event: IMessageEvent) => {
     const message = event.data as string;
     const prepared = prepareIRCMessage(message);
     const {Ping, Pong, Reconnect} = ECommand;
@@ -51,6 +51,31 @@ class Socket implements ISocket {
     });
   };
 
+  /**
+   * Returns event detector which calls listeners for specified event name.
+   * @param handledEvent
+   */
+  private getEventHandler = <K extends TWebSocketEvent>(
+    handledEvent: K,
+  ) => {
+    return (event?: IWebSocketEventMap[K]) => {
+      for (let i = 0; i < this.listeners.length; i++) {
+        const {eventName, listener, once} = this.listeners[i];
+
+        // If event names are equal, call listener.
+        if (handledEvent === eventName) {
+          listener(event);
+        }
+
+        // If it should be called only once, remove listener.
+        if (once) {
+          this.listeners.splice(i, 1);
+          i--;
+        }
+      }
+    };
+  };
+
   public connect = async (): Promise<void> => {
     if (this.ws) {
       this.ws.close();
@@ -60,9 +85,10 @@ class Socket implements ISocket {
     this.ws = new WebSocket(this.path);
 
     // Bind previously bound listeners to new instance of WebSocket.
-    this.listeners.forEach(({eventName, listener, once}) => {
-      this.ws.addEventListener(eventName, listener, {once});
-    });
+    this.ws.onclose = this.getEventHandler('close');
+    this.ws.onopen = this.getEventHandler('open');
+    this.ws.onerror = this.getEventHandler('error');
+    this.ws.onmessage = this.getEventHandler('message');
 
     // Add event listener on "open", to know, when connection is
     // successfully opened.
@@ -83,23 +109,6 @@ class Socket implements ISocket {
 
   public on: TAddEventListener = (eventName, listener, once = false) => {
     this.listeners.push({eventName, listener, once});
-
-    if (this.ws) {
-      this.ws.addEventListener(eventName, event => {
-        // If event is bound only once, we have to remove it from cache,
-        // because after new WebSocket is created, "once" events will be lost.
-        if (once) {
-          const foundIndex = this.listeners.findIndex(item => {
-            return item.eventName === eventName && item.listener === listener;
-          });
-
-          if (foundIndex > -1) {
-            this.listeners.splice(foundIndex, 1);
-          }
-        }
-        listener.call(this.ws, event);
-      }, {once});
-    }
   };
 
   public off: TRemoveEventListener = (eventName, listener) => {
@@ -109,9 +118,6 @@ class Socket implements ISocket {
 
     if (foundIndex > -1) {
       this.listeners.splice(foundIndex, 1);
-    }
-    if (this.ws) {
-      this.ws.removeEventListener(eventName, listener);
     }
   };
 
