@@ -1,4 +1,7 @@
 # Updates history
+### Release 6.1.0
+- Added support for Node;
+
 ### Release 6.0.0
 In this release library was fully reworked. It became much easier to use from 
 this patch. 

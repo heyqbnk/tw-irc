@@ -1,4 +1,17 @@
-# tw-irc  
+tw-irc
+===  
+
+[![NPM version][npm-image]][npm-url]
+![Dependencies][deps-image]
+![Size][size-image]
+![Version][version-image]
+
+[deps-image]: https://img.shields.io/david/wolframdeus/tw-irc
+[npm-image]: https://img.shields.io/npm/dm/tw-irc
+[npm-url]: https://www.npmjs.com/package/tw-irc
+[size-image]: https://img.shields.io/bundlephobia/minzip/tw-irc
+[version-image]: https://img.shields.io/npm/v/tw-irc
+
 ## Overview  
 Here is a library that handles connection to Twitch IRC. It allows you to join 
 or leave channels, detect and send new messages and other.
@@ -13,7 +26,6 @@ Compatible for both `node` and `browser`.
     - [Using channel commands](#using-channel-commands)
     - [Forking channels and rooms](#forking-channels-and-rooms)
     - [Getting full control](#getting-full-control)
-    - [Sandbox](#sandbox)
 - [Example](#example)
 - [Updates history](#updates-history)
 - [License](#license)
@@ -151,8 +163,8 @@ client.connect();
 ```
 
 ## Example
-There are 2 examples for [node](https://github.com/wolframdeus/tw-irc/blob/master/example/node-example.js) 
-and [browser](https://github.com/wolframdeus/tw-irc/blob/master/example/index.ts).
+There are 2 examples for [node](https://github.com/wolframdeus/tw-irc/blob/master/examples/node-example.js) 
+and [browser](https://github.com/wolframdeus/tw-irc/blob/master/examples/browser-example.ts).
 
 Running node version:
 1. Clone repo;

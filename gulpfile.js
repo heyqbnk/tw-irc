@@ -1,11 +1,10 @@
-/* eslint-disable */
 const gulp = require('gulp');
 const tsLoader = require('gulp-typescript');
 const minify = require('gulp-minify');
 const clean = require('gulp-clean');
 
 const tsProject = tsLoader.createProject('tsconfig.json', {
-  include: 'src',
+  include: ['src'],
 });
 
 function compile() {
