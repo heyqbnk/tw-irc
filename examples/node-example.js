@@ -1,5 +1,4 @@
-const {default: Client} = require('../dist');
-const {ECommand, ESocketReadyState} = require('../dist/types');
+const {default: Client, ECommand, ESocketReadyState} = require('../dist');
 
 const client = new Client({
   channels: ['pestily'],
@@ -56,10 +55,3 @@ printReadyState();
 
   client.connect();
 })();
-
-// Webpack Hot Module Reload feature
-if (module.hot) {
-  module.hot.accept(() => {
-    window.location.reload();
-  });
-}
