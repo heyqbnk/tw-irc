@@ -1,16 +1,22 @@
-import Client, {ESignal} from '../lib';
-import {TTransformableEvent} from '../lib/EventsRepository';
-import {ESocketReadyState} from '../lib/Socket';
+import Client, {ECommand} from '../src';
+import {ESocketReadyState} from '../src/Socket';
+import {TKnownEvent} from '../src/EventsRepository';
 
-const client = new Client();
+const client = new Client({
+  channels: ['pestily'],
+});
 
-const {Open, Closed, Closing} = ESocketReadyState;
+const {
+  ClearChat, ClearMessage, GlobalUserState, Host, Join, Leave,
+  Message, Notice, Reconnect, RoomState, UserNotice, UserState,
+} = ECommand;
 
 /**
  * Prints current ready state.
  */
 function printReadyState() {
   const state = client.socket.getReadyState();
+  const {Open, Closed, Closing} = ESocketReadyState;
 
   if (state === Open) {
     console.warn('Socket connection is established');
@@ -23,48 +29,33 @@ function printReadyState() {
   }
 }
 
-const observableSignals: TTransformableEvent[] = [
-  ESignal.ClearChat, ESignal.ClearMessage, ESignal.GlobalUserState,
-  ESignal.Host, ESignal.Join, ESignal.Leave, ESignal.Message, ESignal.Notice,
-  ESignal.Reconnect, ESignal.RoomState, ESignal.UserNotice, ESignal.UserState,
-];
-
-const listeners: any[] = [];
-
 printReadyState();
 
 (async () => {
-  /**
-   * Add all observable events listeners, join channel.
-   */
+  const commands: TKnownEvent[] = [
+    ClearChat, ClearMessage, GlobalUserState, Host, Join, Leave,
+    Message, Notice, Reconnect, RoomState, UserNotice, UserState,
+  ];
+
   function onConnected() {
     printReadyState();
-
-    // Join channel
-    const channel = 'summit1g';
-    client.channels.join(channel);
   }
 
-  /**
-   * Removes all previously added listeners.
-   */
   function onDisconnected() {
     printReadyState();
   }
-
-  // Watch each observable signal.
-  observableSignals.forEach(signal => {
-    const listener = (params: any) => console.log(`${signal} ::`, params);
-    listeners.push({signal, listener});
-
-    client.on(signal, listener);
-  });
 
   // Add event listener on socket opened
   client.onConnected(onConnected);
   client.onDisconnected(onDisconnected);
 
-  await client.connect();
+  commands.forEach(c => {
+    client.on(c, (data: any) => {
+      console.log(`Command: %c${c}`, 'font-weight: bold', data);
+    });
+  })
+
+  client.connect();
 })();
 
 // Webpack Hot Module Reload feature

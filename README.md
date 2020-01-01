@@ -1,6 +1,7 @@
 # tw-irc  
-  
-Here is a library that handles connection to Twitch IRC. It allows you to join or leave channels, detect and send new messages and other.
+## Overview  
+Here is a library that handles connection to Twitch IRC. It allows you to join 
+or leave channels, detect and send new messages and other.
 
 ## Table of contents
 - [Install](#install)
@@ -22,23 +23,28 @@ yarn add tw-irc
 ```
 
 ## Usage
+To start working with Twitch IRC, we have to create a client. You can specify
+if connection is `secure`, pass `channels` which client will automatically
+join on connection established, or pass `auth` data which is required to
+send messages from someones face.
+
 ### Basic
 ```typescript
-import Client, {ESignal} from 'tw-irc';
+import Client, {ECommand} from 'tw-irc';
 
-const {Message} = ESignal;
+const {Message} = ECommand;
 
 // Create IRC client
 const client = new Client();
 
 // Bind events before connect. Just watch for incoming messages
-client.on(Message, ({message, author}) => {
-  console.log(`User ${author} said "${message}"`);
+client.on(Message, ({message, displayName}) => {
+  console.log(`User ${displayName} said: "${message}"`);
 });
 
-// When socket connection is successfully opened, join "summit1g" channel.
+// When socket connection is successfully opened, join channel
 client.onConnected(() => {
-  client.channels.join('summit1g');
+  client.channels.join('rxnexus');
 });
 
 // Connect client to IRC
@@ -46,14 +52,12 @@ client.connect();
 ```
 
 ### Authenticated client
-You are able to pass authentication data to client and then
-communicate with IRC as some person (or bot).
-
 ```typescript
 import Client from 'tw-irc';
 
 // Create authenticated IRC client
 const client = new Client({
+  channels: ['rxnexus'],
   secure: true, // secure connection recommended
   auth: {
     login: 'twitchfan', // your Twitch login
@@ -61,13 +65,9 @@ const client = new Client({
   },
 });
 
-// When socket connection is successfully opened, join "summit1g" channel.
 client.onConnected(() => {
-  // Join channel
-  client.channels.join('summit1g');
-  
   // Say hi!
-  client.channels.say('Hello @summit1g!');
+  client.channels.say('Hello @rxnexus!', 'rxnexus');
 });
 
 client.connect();
@@ -81,20 +81,20 @@ import Client from 'tw-irc';
 const client = new Client();
 
 client.onConnected(() => {
-  client.channels.join('summit1g');
-  
-  // Set emote only mode
-  client.channels.emoteOnly.enable('summit1g!');
+  client.channels.join('rxnexus');
 
-  // Ban some troll in channel
-  client.channels.ban('troll5221', 'summit1g');
+  // Ban someone
+  client.channels.ban('troll123', 'rxnexus');
+
+  // Set emote-only mode
+  client.channels.emoteOnly.enable('rxnexus');
 });
 
 client.connect();
 ```
 
-### Forking channels and rooms
-For easier usage you can create channels and rooms controllers from client.
+### Forking channels
+For easier usage you can create channels controllers from client.
 
 ```typescript
 import Client from 'tw-irc';
@@ -102,20 +102,20 @@ import Client from 'tw-irc';
 const client = new Client();
 
 client.onConnected(() => {
-  // Create channel controller for "summit1g" channel.
-  const summitChannel = client.forkChannel('summit1g');
+  // Create channel controller
+  const channel = client.fork('rxnexus');
   
   // Join channel
-  summitChannel.join();
+  channel.join();
 
   // Say hi
-  summitChannel.say('Hello summit!');
+  channel.say('Hello!');
 
   // Set emote only mode
-  summitChannel.emoteOnly.enable();
+  channel.emoteOnly.enable();
 
   // Ban some troll in channel
-  summitChannel.ban('troll5221');
+  channel.ban('troll123');
 });
 
 client.connect();
@@ -146,8 +146,12 @@ client.onMessage(event => {
 client.connect();
 ```
 
+### Sandbox
+You can use an [example](https://github.com/wolframdeus/tw-irc/blob/master/example/index.ts), 
+which is watching for each available command. To try it, clone this repo and use `yarn dev` or `npm run dev` to run. 
+
 ## Updates history
-You can find updates history here - https://github.com/wolframdeus/tw-irc/blob/master/updates-history.md
+You can find updates history [here](https://github.com/wolframdeus/tw-irc/blob/master/updates-history.md).
 
 ## License
 MIT

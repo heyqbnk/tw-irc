@@ -1,6 +1,6 @@
 {
   "name": "tw-irc",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "description": "TypeScript library for working with Twitch IRC",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,7 +8,8 @@
   "author": "Wolfram Deus <wolfram.deus@gmail.com>",
   "license": "MIT",
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "src/**/*"
   ],
   "keywords": [
     "tmi",
@@ -29,15 +30,15 @@
     "chat"
   ],
   "scripts": {
-    "preversion": "yarn test && yarn lint && yarn build",
+    "preversion": "yarn lint && yarn build",
     "build": "tsc -p tsconfig-build.json",
-    "lint": "eslint --fix ./lib/**/*.ts",
+    "lint": "eslint --fix ./src/**/*.ts",
     "dev": "webpack-dev-server",
     "test": "jest --config jest.config.js"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn test && yarn lint && yarn build"
+      "pre-commit": "yarn lint && yarn build"
     }
   },
   "devDependencies": {

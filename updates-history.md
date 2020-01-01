@@ -1,4 +1,37 @@
 # Updates history
+### Release 6.0.0
+In this release library was fully reworked. It became much easier to use from 
+this patch. 
+
+Patch notes:
+- `RoomsRepository` was temporarily removed;
+- `Channels.join` now accepts channel with any casing. It will be automatically
+lower cased. Previously joining was not working when you pass chanel not in 
+lower case;
+- Added field `channels?: string[]` to `Client` constructor props. Client will 
+automatically join passed channels every time connection is opened (including
+cases when client is reconnected) to provide stable flow work. This is
+preferred way of defining channels for client, because `channels.join` will
+not join channel again after connection is closed;
+- `Socket.on` can now call listener once. Every listener is stashed inside
+`Socket` instance. It means, firstly, that you can still unbind them via
+`off` and, secondly, `once` listeners will always exist even WebSocket instance
+inside was recreated (in case, there was a reconnect). So, `once` listener exist
+until it is called not depending on to which WebSocket instance it is bound.
+`Socket` removes this listener by himself;
+- `HOSTTRAGET` listener data bugs were fixed;
+- `USERNOTICE` listener data now gets `params` field in case there were
+fields in meta starting with `msg-param`. `msg-param` fields exist when some 
+unusual notice was sent (like `subgift`, `anonsubgift` etc). There is a special
+type `TUserNoticeMessage<MsgId extends keyof IUserNoticeParamsMap | null>` 
+which can help you to detect which notice occurred and which params exist;
+- Data passed to listeners became less modified from original one. Almost
+each listener gets an object with `parsedMessage` and `channel` (if exists).
+So, if other data passed to listener is not enough, you can use `parsedMessage`
+field, which have full info. This change was required because we wanted to
+make it much more clear to understand for users;
+- Message parsing methods were changed. They are a bit more accurate now;
+
 ### Release 5.0.0
 #### Client
 - Added shortcut methods `onConnect`, `onDisconnect`, `onMessage` and `onError`
