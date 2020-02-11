@@ -10,7 +10,7 @@ import {
 function userNotice(message: IParsedMessage): TUserNoticeMessage<any> {
   const meta = message.meta as IMeta;
   const mixin = Object
-    .entries(message.meta)
+    .entries(meta)
     .reduce<Record<string, any>>((acc, [key, value]) => {
       if (key.startsWith('msgParam')) {
         if (!('params' in acc)) {
@@ -24,11 +24,11 @@ function userNotice(message: IParsedMessage): TUserNoticeMessage<any> {
 
   return {
     parsedMessage: message,
-    channel: message.channel,
+    channel: message.channel as string,
     badgeInfo: meta.badgeInfo as IBadges | null,
     badges: meta.badges as IBadges | null,
     color: meta.color as string | null,
-    displayName: meta.displayName as string | null,
+    displayName: meta.displayName as string,
     emotes: meta.emotes as IEmotes,
     id: meta.id as string,
     login: meta.login as string,

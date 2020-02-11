@@ -6,9 +6,9 @@ function clearMessage(message: IParsedMessage): IClearMsgMessage {
 
   return {
     parsedMessage: message,
-    channel: message.channel,
+    channel: message.channel as string,
     login: meta.login as string,
-    message: message.message,
+    message: message.message as string,
     targetMsgId: meta.targetMsgId as string,
   };
 }

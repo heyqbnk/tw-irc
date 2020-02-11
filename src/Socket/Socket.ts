@@ -103,7 +103,10 @@ class Socket implements ISocket {
     }
     return new Promise(res => {
       this.on('close', () => res(), true);
-      this.ws.close();
+
+      if (this.ws) {
+        this.ws.close();
+      }
     });
   };
 

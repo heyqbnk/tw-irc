@@ -6,17 +6,17 @@ function message(message: IParsedMessage): IPrivateMessage {
 
   return {
     parsedMessage: message,
-    channel: message.channel,
+    channel: message.channel as string,
     badgeInfo: meta.badgeInfo as IBadges | null,
     badges: meta.badges as IBadges | null,
     color: meta.color as string | null,
-    displayName: meta.displayName as string | null,
+    displayName: meta.displayName as string,
     emotes: meta.emotes as IEmotes,
     id: meta.id as string,
     roomId: meta.roomId as number,
     tmiSentTs: meta.tmiSentTs as number,
     userId: meta.userId as string,
-    message: message.message,
+    message: message.message as string,
     bits: meta.bits ? meta.bits as number : null,
   };
 }

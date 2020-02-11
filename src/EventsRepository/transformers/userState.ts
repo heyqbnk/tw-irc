@@ -6,7 +6,7 @@ function userState(message: IParsedMessage): IUserStateMessage {
 
   return {
     parsedMessage: message,
-    channel: message.channel,
+    channel: message.channel as string,
     badgeInfo: meta.badgeInfo as IBadges | null,
     badges: meta.badges as IBadges | null,
     color: meta.color as string | null,

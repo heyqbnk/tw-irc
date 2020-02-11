@@ -6,8 +6,8 @@ function notice(message: IParsedMessage): INoticeMessage {
 
   return {
     parsedMessage: message,
-    channel: message.channel,
-    message: message.message,
+    channel: message.channel as string,
+    message: message.message as string,
     msgId: meta.msgId as ENoticeMessageId,
   };
 }

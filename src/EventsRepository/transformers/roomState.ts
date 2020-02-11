@@ -6,7 +6,7 @@ function roomState(message: IParsedMessage): IRoomstateMessage {
 
   return {
     parsedMessage: message,
-    channel: message.channel,
+    channel: message.channel as string,
     emoteOnly: meta.emoteOnly as boolean,
     followersOnly: meta.followersOnly as number,
     r9k: meta.r9k as boolean,

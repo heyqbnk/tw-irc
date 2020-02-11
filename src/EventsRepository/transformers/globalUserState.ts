@@ -9,9 +9,9 @@ function globalUserState(message: IParsedMessage): IGlobalUserStateMessage {
     badgeInfo: meta.badgeInfo as IBadges | null,
     badges: meta.badges as IBadges | null,
     color: meta.color as string | null,
-    displayName: meta.displayName as string | null,
+    displayName: meta.displayName as string,
     emoteSets: meta.emoteSets as number[],
-    userId: meta.userId as string | null,
+    userId: meta.userId as string,
   };
 }
 

@@ -76,7 +76,7 @@ class Client implements IClient {
 
   public disconnect = () => this.socket.disconnect();
 
-  public onConnected = (callback: (e: Event) => any, once?: boolean) => {
+  public onConnected = (callback: () => any, once?: boolean) => {
     this.socket.on('open', callback, once);
   };
 

@@ -161,7 +161,7 @@ export interface IUserNoticeParamsMap {
   [EUserNoticeMessageId.SubscriberMysteryGift]: IUserNoticeSubMysteryGift;
 }
 
-export type TUserNoticeMessage<MsgId extends keyof IUserNoticeParamsMap | null> =
+export type TUserNoticeMessage<MsgId extends keyof IUserNoticeParamsMap> =
   {
     parsedMessage: IParsedMessage;
     channel: string;

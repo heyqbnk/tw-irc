@@ -181,7 +181,8 @@ export function parseIRCMessage(value: string): IParsedMessage | null {
       const [commandRaw, message = null] = temp.split(':').map(trim);
 
       const commandRawSplitted = commandRaw.split(' ');
-      const channel = commandRawSplitted.pop().slice(1);
+      const channelPopped = commandRawSplitted.pop();
+      const channel = channelPopped ? channelPopped.slice(1) : '';
       const command = commandRawSplitted.join(' ');
 
       return {
